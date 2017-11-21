@@ -22,23 +22,22 @@ Where: http://huntercollege.adobeconnect.com/statisticalrethinking/
 
 | date | chapter | presenter |
 | ---- | ------- | --------- |
-| 2018 | Preface | schifferl |
-| 2018 | The Golem of Prague |  |
-| 2018 | Small Worlds and Large Worlds |  |
-| 2018 | Sampling the Imaginary |  |
-| 2018 | Linear Models |  |
-| 2018 | Multivariate Linear Models |  |
-| 2018 | Overfitting and Model Comparison |  |
-| 2018 | Interactions |  |
-| 2018 | Markov chain Monte Carlo Estimation |  |
-| 2018 | Big Entropy and the Generalized Linear Model |  |
-| 2018 | Counting and Classification |  |
-| 2018 | Monsters and Mixtures |  |
-| 2018 | Multilevel Models |  |
-| 2018 | Adventures in Covariance |  |
-| 2018 | Missing Data and Other Opportunities |  |
-| 2018 | Horoscopes |  |
-| 2018 | Monsters and Mixtures |  |
+| 2018-01-31 | Preface | schifferl |
+| 2018-02-07 | The Golem of Prague | schifferl |
+| 2018-02-14 | Small Worlds and Large Worlds | CUNY |
+| 2018-02-21 | Sampling the Imaginary | CUNY |
+| 2018-02-28 | Linear Models |  |
+| 2018-03-07 | Multivariate Linear Models |  |
+| 2018-03-14 | Overfitting and Model Comparison |  |
+| 2018-03-21 | Interactions |  |
+| 2018-04-18 | Markov chain Monte Carlo Estimation |  |
+| 2018-04-25 | Big Entropy and the Generalized Linear Model |  |
+| 2018-05-02 | Counting and Classification |  |
+| 2018-05-09 | Monsters and Mixtures |  |
+| 2018-05-16 | Multilevel Models |  |
+| 2018-05-23 | Adventures in Covariance |  |
+| 2018-05-30 | Missing Data and Other Opportunities | PLUS |
+| 2018-06-06 | Horoscopes | PLUS |
 
 ## Presenting
 
