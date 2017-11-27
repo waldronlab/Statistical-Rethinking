@@ -22,10 +22,10 @@ Where: http://huntercollege.adobeconnect.com/statisticalrethinking/
 
 | date | chapter | presenter |
 | ---- | ------- | --------- |
-| 2018-01-31 | Preface | schifferl |
-| 2018-02-07 | The Golem of Prague | schifferl |
-| 2018-02-14 | Small Worlds and Large Worlds | CUNY |
-| 2018-02-21 | Sampling the Imaginary | CUNY |
+| 2018-01-31 | Preface (recorded) | schifferl |
+| 2018-02-07 | The Golem of Prague (recorded) | schifferl |
+| 2018-02-14 | Small Worlds and Large Worlds (recorded) | CUNY |
+| 2018-02-21 | Sampling the Imaginary (recorded) | CUNY |
 | 2018-02-28 | Linear Models |  |
 | 2018-03-07 | Multivariate Linear Models |  |
 | 2018-03-14 | Overfitting and Model Comparison |  |
@@ -36,8 +36,8 @@ Where: http://huntercollege.adobeconnect.com/statisticalrethinking/
 | 2018-05-09 | Monsters and Mixtures |  |
 | 2018-05-16 | Multilevel Models |  |
 | 2018-05-23 | Adventures in Covariance |  |
-| 2018-05-30 | Missing Data and Other Opportunities | PLUS |
-| 2018-06-06 | Horoscopes | PLUS |
+| 2018-05-30 | Missing Data and Other Opportunities (recorded) | PLUS |
+| 2018-06-13 | Horoscopes (recorded) | PLUS |
 
 ## Presenting
 
