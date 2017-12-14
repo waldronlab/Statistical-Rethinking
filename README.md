@@ -10,7 +10,16 @@ This repository represent the joint effort of [Paris Lodron University of Salzbu
 
 ## Getting Started
 
-1. 
+1. Obtain a free copy of the book by requesting access to our shared Google Drive directory via [this link](https://drive.google.com/drive/folders/1QeWvfe7groIoTXSQdpEfGx-oXASGmrgX?usp=sharing).
+
+2. If you don't already have them, install R and RStudio following these [instructions](https://www.ics.uci.edu/~jutts/110/InstallingRandRStudio.pdf).
+
+3. Sign up for a GitHub account (also free) and clone this repository (open membership) in RStudio. Don't know what that means? Follow this [tutorial](https://try.github.io/levels/1/challenges/1). The process in RStudio is documented [here](https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN) or there is a video [here](https://www.rstudio.com/resources/webinars/rstudio-essentials-webinar-series-managing-part-2/).
+
+4. Join our Google Group (open membership) and sign up to receive emails by visiting https://groups.google.com/d/forum/statisticalrethinking.
+
+5. Join our Google Calendar (open membership) to receive meeting reminders by subscribing to the calendar's email address (6nir9s7kt0t81u4o4ncvqnd85c@group.calendar.google.com).
+
 
 ## Our Meetings
 
@@ -47,11 +56,13 @@ Where: http://huntercollege.adobeconnect.com/statisticalrethinking/
 
 3. Read the chapter in the book.
 
-4. Edit the presentation file using RStudio. All presentations should be authored using the `.Rpres` format, more infomation about the format is available [here](https://support.rstudio.com/hc/en-us/articles/200486468). Additionally, some previous presentation that can be used as examples are available [here](https://github.com/waldronlab/Book_Club/tree/master/Data%20Analysis%20for%20the%20Life%20Sciences).
+4. Edit the presentation file using RStudio. All presentations should be authored using the `.Rpres` format, more information about the format is available [here](https://support.rstudio.com/hc/en-us/articles/200486468). Additionally, some previous presentation that can be used as examples are available [here](https://github.com/waldronlab/The-Art-of-Data-Science).
 
-5. Commit the presentation to GitHub from RStudio so that it is available to others. Don't know what that means? The process is documented [here](https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN) or there is a video [here](https://www.rstudio.com/resources/webinars/rstudio-essentials-webinar-series-managing-part-2/).
+5. Edit the exercises file using RStudio. All exercises should be authored using the `.Rmd` format, more information about the format is available [here](https://support.rstudio.com/hc/en-us/articles/205368677-R-Markdown-Dynamic-Documents-for-R). Additionally, some previous presentation that can be used as examples are available [here](https://github.com/waldronlab/Book_Club/tree/master/Data%20Analysis%20for%20the%20Life%20Sciences).
 
-6. Present your hard work at the weekly meeting!
+6. Commit the presentation and exercises to GitHub from RStudio so that it is available to others. Don't know what that means? The process is documented [here](https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN) or there is a video [here](https://www.rstudio.com/resources/webinars/rstudio-essentials-webinar-series-managing-part-2/).
+
+7. Present your hard work at the weekly meeting!
 
 ## Getting Help
 
