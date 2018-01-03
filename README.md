@@ -39,7 +39,7 @@ Where: http://huntercollege.adobeconnect.com/statisticalrethinking/
 | 2018-03-07 | Multivariate Linear Models |  |
 | 2018-03-14 | Overfitting and Model Comparison |  |
 | 2018-03-21 | Interactions |  |
-| 2018-04-18 | Markov chain Monte Carlo Estimation | Philipp |
+| 2018-04-18 | Markov chain Monte Carlo Estimation | philippgrafendorfe |
 | 2018-04-25 | Big Entropy and the Generalized Linear Model |  |
 | 2018-05-02 | Counting and Classification |  |
 | 2018-05-09 | Monsters and Mixtures |  |
