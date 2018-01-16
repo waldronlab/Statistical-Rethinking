@@ -56,9 +56,9 @@ Where: http://huntercollege.adobeconnect.com/statisticalrethinking/
 
 3. Read the chapter in the book.
 
-4. Edit the presentation file using RStudio. All presentations should be authored using the `.Rpres` format, more information about the format is available [here](https://support.rstudio.com/hc/en-us/articles/200486468). Additionally, some previous presentation that can be used as examples are available [here](https://github.com/waldronlab/The-Art-of-Data-Science).
+4. Edit the presentation file using RStudio. All presentations should be authored using the `.Rpres` format, more information about the format is available [here](https://support.rstudio.com/hc/en-us/articles/200486468). Additionally, some previous presentations that can be used as examples are available [here](https://github.com/waldronlab/The-Art-of-Data-Science).
 
-5. Edit the exercises file using RStudio. All exercises should be authored using the `.Rmd` format, more information about the format is available [here](https://support.rstudio.com/hc/en-us/articles/205368677-R-Markdown-Dynamic-Documents-for-R). Additionally, some previous presentation that can be used as examples are available [here](https://github.com/waldronlab/Book_Club/tree/master/Data%20Analysis%20for%20the%20Life%20Sciences).
+5. Edit the exercises file using RStudio. All exercises should be authored using the `.Rmd` format, more information about the format is available [here](https://support.rstudio.com/hc/en-us/articles/205368677-R-Markdown-Dynamic-Documents-for-R). Additionally, some previous exercises that can be used as examples are available [here](https://github.com/waldronlab/Book_Club/tree/master/Data%20Analysis%20for%20the%20Life%20Sciences).
 
 6. Commit the presentation and exercises to GitHub from RStudio so that it is available to others. Don't know what that means? The process is documented [here](https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN) or there is a video [here](https://www.rstudio.com/resources/webinars/rstudio-essentials-webinar-series-managing-part-2/).
 
