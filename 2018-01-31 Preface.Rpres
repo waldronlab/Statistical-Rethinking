@@ -1,0 +1,147 @@
+Preface
+========================================================
+author: schifferl
+date: January 31, 2018
+autosize: true
+
+Welcome
+========================================================
+
+*Statistical Rethinking: A Bayesian Course with Examples in R and Stan*
+
+A joint effort of [Paris Lodron University of Salzburg](https://www.uni-salzburg.at/index.php?id=52) and the [City University of New York Graduate School of Public Health and Health Policy](http://sph.cuny.edu/).
+
+Course will be taught by developing instructors with a focus on using the R language.
+
+Our meetings are open to all (see details below) and our materials are licensed under the Creative Commons Attribution-ShareAlike 4.0 International Public License.
+
+We hope you will join our sessions!
+
+***
+
+![](https://images.tandf.co.uk/common/jackets/amazon/978148225/9781482253443.jpg)
+
+McElreath, R. *Statistical Rethinking: A Bayesian Course with Examples in R and Stan*. (CRC Press/Taylor & Francis Group, 2016).
+
+Meetings
+========================================================
+
+When:
+
+- Wednesday's begining January 31, 2018
+- 11:15-12:15 (NYC)
+- 17:15-18:15 (Salzburg)
+
+Where:
+
+- http://huntercollege.adobeconnect.com/statisticalrethinking/
+
+Schedule:
+
+- Available on GitHub
+
+Getting Started
+========================================================
+
+Visit GitHub and read the Getting Started section.
+
+You will want to:
+
+1. Obtain the book
+2. Join the Google Group
+3. Subscribe to the calendar
+4. Get R and RStudio set up
+5. Clone the GitHub repository
+
+***
+
+- GitHub:
+
+    <https://github.com/waldronlab/Statistical-Rethinking>
+
+- Book:
+
+    <https://tinyurl.com/yahyd8jj>
+
+- Meetings:
+
+    <http://huntercollege.adobeconnect.com/statisticalrethinking/>
+
+Contributing
+========================================================
+
+- Active participation encouraged
+- Just add yourself to the schedule
+- Read the chapter in the book
+- Prepare a summary presentation
+- Complete the chapter's exercises
+- And present at the weekly meeting
+
+Presentations
+========================================================
+
+- All presentations should be authored in the `.Rpres` format
+- Templates for every week are available on GitHub, just edit
+- Make sure to add your GitHub username and the presentation date
+
+More details on authoring R presentations:
+
+<https://support.rstudio.com/hc/en-us/articles/200486468>.
+
+Exercises
+========================================================
+
+- A exercise presentations should be authored in the `.Rmd` format
+- Templates for every week are available on GitHub, just edit
+- Make sure to add your GitHub username and the presentation date
+
+More details on authoring R markdown documents:
+
+<http://rmarkdown.rstudio.com/>
+
+
+Lost
+========================================================
+
+Still need help? Email the Google Group:
+
+statisticalrethinking@googlegroups.com
+
+Preface
+========================================================
+
+- Build scaffolding
+- Build a wall
+- Remove scaffolding
+
+Audience
+========================================================
+
+- Researcher's at any level
+- Fimilary with basic regression
+- Seeking an alternative to p-value stats
+
+Teaching
+========================================================
+
+- More computer code than mathematics
+- Helps to understand implementation
+- Theory should then make sense after
+
+Book
+========================================================
+
+- Meant to be read in order
+- A course more than a reference
+- Use the code provided
+- Use the command line
+
+Package
+========================================================
+
+```{r, eval=FALSE}
+install.packages(c("coda", "mvnorm", "devtools"))
+library(devtools)
+devtools::install_github("rmcelreath/rethinking")
+```
+
