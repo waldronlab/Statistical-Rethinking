@@ -25,7 +25,7 @@ This repository represent the joint effort of [Paris Lodron University of Salzbu
 
 When: Wednesday's from 11:15-12:15 (NYC) / 17:15-18:15 (Salzburg)
 
-Where: http://huntercollege.adobeconnect.com/statisticalrethinking/
+Where: https://tinyurl.com/stat-rethinking
 
 ## Schedule
 
@@ -42,7 +42,7 @@ Where: http://huntercollege.adobeconnect.com/statisticalrethinking/
 | 2018-04-18 | Markov chain Monte Carlo Estimation | philippgrafendorfe |
 | 2018-04-25 | Big Entropy and the Generalized Linear Model |  |
 | 2018-05-02 | Counting and Classification |  |
-| 2018-05-09 | Monsters and Mixtures | Judith Parkinson |
+| 2018-05-09 | Monsters and Mixtures | judithparkinson |
 | 2018-05-16 | Multilevel Models |  |
 | 2018-05-23 | Adventures in Covariance |  |
 | 2018-05-30 | Missing Data and Other Opportunities (recorded) | PLUS |
