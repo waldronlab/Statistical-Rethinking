@@ -1,0 +1,140 @@
+The Golem of Prague
+========================================================
+author: schifferl
+date: February 7, 2018
+width: 1440
+height: 950
+
+McElreath, R. *Statistical Rethinking: A Bayesian Course with Examples in R and
+Stan*. (CRC Press/Taylor & Francis Group, 2016).
+
+Clay golems
+========================================================
+incremental: true
+
+>A golem (goh-lem) is a clay robot known in Jewish folklore, constructed from
+dust and fire and water. It is brought to life by inscribing emet, Hebrew for
+“truth,” on its brow.
+
+Statistical golems
+========================================================
+incremental: true
+
+>Scientists also make golems. Our golems rarely have physical form, but they too
+are often made of clay, living in silicon as computer code.
+
+Teaching statistics
+========================================================
+incremental: true
+
+>For some, the toolbox of pre-manufactured golems is all they will ever need.
+
+Innovative research
+========================================================
+incremental: true
+
+>The classical procedures of introductory statistics tend to be inflexible and
+fragile.
+
+<br>
+
+>Instead, what researchers need is some unified theory of golem engineering, a
+set of principles for designing, building, and refining special-purpose
+statistical procedures.
+
+Statistical rethinking
+========================================================
+incremental: true
+
+>Instead, we need some statistical epistemology, an appreciation of how
+statistical models relate to hypotheses and the natural mechanisms of interest.
+
+Karl Popper
+========================================================
+incremental: true
+
+![](http://www.myeloma.org/sites/default/files/images/blogs/istock-520222614_blackwhiteswan.jpg)
+
+Hypotheses are not models
+========================================================
+incremental: true
+
+>All models are wrong; some models are useful. - _George Box_
+
+<p style="text-align: center;">
+  <img src="figures/figure_1.2.png">
+</p>
+
+Alternative models
+========================================================
+incremental: true
+
+>If it turns out that all of the process models of interest make very similar
+predictions, then you know to search for a different description of the
+evidence, a description under which the processes look different.
+
+Measurement matters
+========================================================
+incremental: true
+
+>First, observations are prone to error, especially at the boundaries of
+scientific knowledge. Second, most hypotheses are quantitative, concerning
+degrees of existence, rather than discrete, concerning total presence or
+absence.
+
+<br>
+
+- Continuous hypotheses also exists
+- Falsification is consensual
+
+Three tools for golem engineering
+========================================================
+incremental: true
+
+<br>
+<br>
+
+1. Bayesian data analysis
+2. Multilevel models
+3. Model comparison using information criteria
+
+Left unsaid
+========================================================
+incremental: true
+
+<p style="text-align: center;">
+  <a href="http://www.is-there-a-god.info/blog/clues/two-scientists-probability-and-god/">
+    <img src="http://www.is-there-a-god.info/blog/wp-content/uploads/2016/02/Bayes_Theorem.jpg">
+  </a>
+</p>
+
+>Bayes Theorem is a formula for calculating a new probability of a hypothesis
+being true, after new evidence is considered. It is based on the idea that if a
+new piece of evidence is more likely if a hypothesis is true than if it is
+false, then it raises the probability that the hypothesis is true.
+
+Thomas Bayes
+========================================================
+incremental: true
+
+<p style="text-align: center;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Thomas_Bayes.gif">
+</p>
+
+
+[An Essay towards solving a Problem in the Doctrine of Chances](http://www.stat.ucla.edu/history/essay.pdf)
+
+Multilevel models / Model comparison using information criteria
+========================================================
+incremental: true
+
+<br>
+
+- Extensive information in the text
+- Multilevel models
+    - To adjust estimates for repeat sampling
+    - To adjust estimates for imbalance in sampling
+    - To study variation
+    - To avoid averaging
+- Information criteria
+    - Evaluate model accuracy based on information theory

@@ -1,0 +1,25 @@
+---
+title: "untitled"
+author: "unknown"
+date: "February 21, 2018"
+output:
+  html_document:
+    fig_height: 7
+    fig_retina: NULL
+    code_folding: "hide"
+---
+
+## `knitr` Options
+
+```{r}
+knitr::opts_chunk$set(fig.align = "center")
+knitr::opts_chunk$set(results = "hold")
+```
+
+## `R` Packages
+
+```{r, message=FALSE}
+library(readr)
+```
+
+## Pratice

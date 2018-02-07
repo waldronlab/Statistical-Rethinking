@@ -2,10 +2,14 @@ Preface
 ========================================================
 author: schifferl
 date: January 31, 2018
-autosize: true
+width: 1440
+height: 950
+
+McElreath, R. *Statistical Rethinking: A Bayesian Course with Examples in R and Stan*. (CRC Press/Taylor & Francis Group, 2016).
 
 Welcome
 ========================================================
+incremental: true
 
 *Statistical Rethinking: A Bayesian Course with Examples in R and Stan*
 
@@ -25,6 +29,7 @@ McElreath, R. *Statistical Rethinking: A Bayesian Course with Examples in R and 
 
 Meetings
 ========================================================
+incremental: true
 
 When:
 
@@ -42,6 +47,7 @@ Schedule:
 
 Getting Started
 ========================================================
+incremental: true
 
 Visit GitHub and read the Getting Started section.
 
@@ -69,6 +75,7 @@ You will want to:
 
 Contributing
 ========================================================
+incremental: true
 
 - Active participation encouraged
 - Just add yourself to the schedule
@@ -79,6 +86,7 @@ Contributing
 
 Presentations
 ========================================================
+incremental: true
 
 - All presentations should be authored in the `.Rpres` format
 - Templates for every week are available on GitHub, just edit
@@ -90,6 +98,7 @@ More details on authoring R presentations:
 
 Exercises
 ========================================================
+incremental: true
 
 - A exercise presentations should be authored in the `.Rmd` format
 - Templates for every week are available on GitHub, just edit
@@ -102,6 +111,7 @@ More details on authoring R markdown documents:
 
 Lost
 ========================================================
+incremental: true
 
 Still need help? Email the Google Group:
 
@@ -109,6 +119,7 @@ statisticalrethinking@googlegroups.com
 
 Preface
 ========================================================
+incremental: true
 
 - Build scaffolding
 - Build a wall
@@ -116,6 +127,7 @@ Preface
 
 Audience
 ========================================================
+incremental: true
 
 - Researcher's at any level
 - Fimilary with basic regression
@@ -123,6 +135,7 @@ Audience
 
 Teaching
 ========================================================
+incremental: true
 
 - More computer code than mathematics
 - Helps to understand implementation
@@ -130,6 +143,7 @@ Teaching
 
 Book
 ========================================================
+incremental: true
 
 - Meant to be read in order
 - A course more than a reference
@@ -138,6 +152,7 @@ Book
 
 Package
 ========================================================
+incremental: true
 
 ```{r, eval=FALSE}
 install.packages(c("coda", "mvnorm", "devtools"))
