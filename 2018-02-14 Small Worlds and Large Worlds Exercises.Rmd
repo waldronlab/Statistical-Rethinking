@@ -19,7 +19,7 @@ knitr::opts_chunk$set(results = "hold")
 ## `R` Packages
 
 ```{r, message=FALSE}
-library(readr)
+# library(readr)
 ```
 
 ## Pratice
@@ -33,6 +33,8 @@ of rain on Monday?
   (2) Pr(rain|Monday)
   (3) Pr(Monday|rain)
   (4) Pr(rain, Monday) / Pr(Monday)
+  
+  $$P(rain\ |\ Monday)$$
 
 2E2. Which of the following statements corresponds to the expression: Pr(Monday|rain)?
 
@@ -40,6 +42,8 @@ of rain on Monday?
   (2) The probability of rain, given that it is Monday.
   (3) The probability that it is Monday, given that it is raining.
   (4) The probability that it is Monday and that it is raining.
+  
+    `The probability that it is Monday, given that it is raining.`
 
 2E3. Which of the expressions below correspond to the statement: the probability
 that it is Monday, given that it is raining?
@@ -49,6 +53,8 @@ that it is Monday, given that it is raining?
   (3) Pr(rain|Monday) Pr(Monday)
   (4) Pr(rain|Monday) Pr(Monday) / Pr(rain)
   (5) Pr(Monday|rain) Pr(rain) / Pr(Monday)
+  
+  $$P(Monday\ |\ rain)$$
 
 2E4. The Bayesian statistician Bruno de Finetti (1906–1985) began his book on probability theory
 with the declaration: "PROBABILITY DOES NOT EXIST." The capitals appeared in the original, so
