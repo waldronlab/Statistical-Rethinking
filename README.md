@@ -33,20 +33,20 @@ Where: https://tinyurl.com/stat-rethinking
 | ---- | ------- | --------- |
 | 2018-01-31 | Preface (recorded) | schifferl |
 | 2018-02-07 | The Golem of Prague (recorded) | schifferl |
-| 2018-02-14 | Small Worlds and Large Worlds (recorded) | CUNY |
-| 2018-02-21 | Sampling the Imaginary (recorded) | CUNY |
-| 2018-02-28 | Linear Models |  |
-| 2018-03-07 | Multivariate Linear Models |  |
-| 2018-03-14 | Overfitting and Model Comparison |  |
-| 2018-03-21 | Interactions |  |
-| 2018-04-18 | Markov chain Monte Carlo Estimation | philippgrafendorfe |
-| 2018-04-25 | Big Entropy and the Generalized Linear Model |  |
-| 2018-05-02 | Counting and Classification |  |
-| 2018-05-09 | Monsters and Mixtures | judithparkinson |
-| 2018-05-16 | Multilevel Models |  |
-| 2018-05-23 | Adventures in Covariance |  |
-| 2018-05-30 | Missing Data and Other Opportunities (recorded) | PLUS |
-| 2018-06-13 | Horoscopes (recorded) | PLUS |
+| 2018-02-21 | Small Worlds and Large Worlds (recorded) | CUNY |
+| 2018-02-28 | Sampling the Imaginary (recorded) | CUNY |
+| 2018-03-07 | Linear Models |  |
+| 2018-03-14 | Multivariate Linear Models |  |
+| 2018-03-21 | Overfitting and Model Comparison |  |
+| 2018-04-18 | Interactions |  |
+| 2018-04-25 | Markov chain Monte Carlo Estimation | philippgrafendorfe |
+| 2018-05-02 | Big Entropy and the Generalized Linear Model |  |
+| 2018-05-09 | Counting and Classification |  |
+| 2018-05-16 | Monsters and Mixtures | judithparkinson |
+| 2018-05-23 | Multilevel Models |  |
+| 2018-05-30 | Adventures in Covariance |  |
+| 2018-06-13 | Missing Data and Other Opportunities (recorded) | PLUS |
+| 2018-06-20 | Horoscopes (recorded) | PLUS |
 
 ## Presenting
 
