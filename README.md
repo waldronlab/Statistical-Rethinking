@@ -33,8 +33,8 @@ Where: https://tinyurl.com/stat-rethinking
 | ---- | ------- | --------- |
 | 2018-01-31 | Preface (recorded) | schifferl |
 | 2018-02-07 | The Golem of Prague (recorded) | schifferl |
-| 2018-02-21 | Small Worlds and Large Worlds (recorded) | ITtraveller |
-| 2018-02-28 | Sampling the Imaginary (recorded) | CUNY |
+| 2018-02-21 | Small Worlds and Large Worlds (recorded) | schifferl |
+| 2018-02-28 | Sampling the Imaginary (recorded) | ITtraveller |
 | 2018-03-07 | Linear Models |  |
 | 2018-03-14 | Multivariate Linear Models |  |
 | 2018-03-21 | Overfitting and Model Comparison |  |
