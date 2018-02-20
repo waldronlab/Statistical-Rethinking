@@ -38,7 +38,7 @@ Recordings: https://tinyurl.com/yamyfma7
 | 2018-02-21 | Small Worlds and Large Worlds (recorded) | schifferl |
 | 2018-02-28 | Sampling the Imaginary (recorded) | ITtraveller |
 | 2018-03-07 | Linear Models |  |
-| 2018-03-14 | Multivariate Linear Models |  |
+| 2018-03-14 | Multivariate Linear Models | neoglez |
 | 2018-03-21 | Overfitting and Model Comparison |  |
 | 2018-04-18 | Interactions |  |
 | 2018-04-25 | Markov chain Monte Carlo Estimation | philippgrafendorfe |
