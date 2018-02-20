@@ -27,7 +27,7 @@ When: Wednesday's from 11:15-12:15 (NYC) / 17:15-18:15 (Salzburg)
 
 Where: https://tinyurl.com/stat-rethinking
 
-Recordings: https://tinyurl.com/y82tooam
+Recordings: https://tinyurl.com/yamyfma7
 
 ## Schedule
 
