@@ -25,7 +25,7 @@ This repository represent the joint effort of [Paris Lodron University of Salzbu
 
 When: Wednesday's from 11:15-12:15 (NYC) / 17:15-18:15 (Salzburg)
 
-Where: https://tinyurl.com/stat-rethinking
+Where: https://tinyurl.com/yb8sq7qd
 
 Recordings: https://tinyurl.com/yamyfma7
 

@@ -1,28 +1,157 @@
-Untitled
+Small Worlds and Large Worlds
 ========================================================
-author: 
-date: 
-autosize: true
+author: schifferl
+date: February 21, 2018
+width: 1440
+height: 950
 
-First Slide
+McElreath, R. *Statistical Rethinking: A Bayesian Course with Examples in R and
+Stan*. (CRC Press/Taylor & Francis Group, 2016).
+
+Small worlds and large worlds
 ========================================================
+incremental: true
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+<br>
+<br>
+<p style="width: 100%; text-align: center;">
+  <img src="figures/figure_2.1.jpg">
+</p>
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+***
 
-Slide With Code
+<br>
+<br>
+<p style="width: 100%; text-align: center;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/North_America_from_low_orbiting_satellite_Suomi_NPP.jpg/768px-North_America_from_low_orbiting_satellite_Suomi_NPP.jpg">
+</p>
+
+A bag of four marbles
 ========================================================
+incremental: true
 
+<br>
+<br>
+- Consider a bag of four marbles
+- Marbles are either blue or white
+- Divine all possible combinations
+- Call these *conjectures*
+
+***
+
+<br>
+<br>
+- Consider the 1 blue, 3 white conjecture
+- Draw three times with replacement
+- How many ways to produce:
+  - Blue, white, blue
+
+A bag of four marbles
+========================================================
+incremental: true
+
+<br>
+<br>
+<p style="width: 100%; text-align: center;">
+  <img src="figures/figure_2.2.png">
+</p>
+
+***
+
+<br>
+<br>
+<p style="width: 100%; text-align: center;">
+  <img src="figures/figure_2.3.png">
+</p>
+
+
+A bag of four marbles
+========================================================
+incremental: true
+
+<br>
+<br>
+<p style="width: 100%; text-align: center;">
+  <img src="figures/figure_2.X.png">
+</p>
+<br>
+<p style="width: 100%; text-align: center;">
+  <img src="figures/figure_2.Y.png">
+</p>
+<br>
 ```{r}
-summary(cars)
+ways <- c(0, 3, 8, 9, 0)
+
+ways / sum(ways)
 ```
 
-Slide With Plot
+Definitions
 ========================================================
+incremental: true
 
-```{r, echo=FALSE}
-plot(cars)
-```
+<br>
+<br>
+Parameter - An index of possible explanations
+<br>
+Likelihood - Relative number of ways to produce a parameter
+<br>
+Prior Probability - Prior plausibility of produce specific value of a parameter
+<br>
+Posterior Probability - Updated plausibility of a parameter given observations
+
+Globe toss
+========================================================
+incremental: true
+
+<br>
+<br>
+<p style="width: 100%; text-align: center;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/North_America_from_low_orbiting_satellite_Suomi_NPP.jpg/768px-North_America_from_low_orbiting_satellite_Suomi_NPP.jpg">
+</p>
+
+Globe toss
+========================================================
+incremental: true
+
+- Model (story)
+- Update (prior)
+- Evaluate (BIC)
+
+Globe toss
+========================================================
+incremental: true
+
+<p style="width: 100%; text-align: center;">
+  <img src="figures/figure_2.5.png">
+</p>
+
+
+Bayes' theorem
+========================================================
+incremental: true
+
+<br>
+<br>
+<p style="width: 100%; text-align: center;">
+  <img src="figures/figure_2.A.png">
+</p>
+<br>
+<p style="width: 100%; text-align: center;">
+  <img src="figures/figure_2.B.png">
+</p>
+
+
+Condition Priors
+========================================================
+incremental: true
+
+- Given your data, construct a prior
+- Produce a likelihood for a parameter
+- Calculate a posterior
+
+***
+
+- Grid approximation
+- Quadratic approximation
+- Markov chain Monte Carlo
+
