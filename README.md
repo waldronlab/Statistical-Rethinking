@@ -39,7 +39,7 @@ Recordings: https://tinyurl.com/yamyfma7
 | 2018-02-28 | Sampling the Imaginary (recorded) | ITtraveller |
 | 2018-03-07 | Linear Models |  |
 | 2018-03-14 | Multivariate Linear Models | neoglez |
-| 2018-03-21 | Overfitting and Model Comparison |  |
+| 2018-03-21 | Overfitting and Model Comparison | raph333  |
 | 2018-04-18 | Interactions |  |
 | 2018-04-25 | Markov chain Monte Carlo Estimation | philippgrafendorfe |
 | 2018-05-02 | Big Entropy and the Generalized Linear Model |  |
