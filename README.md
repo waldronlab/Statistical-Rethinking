@@ -47,7 +47,7 @@ Recordings: https://tinyurl.com/yamyfma7
 | 2018-05-16 | Monsters and Mixtures | judithparkinson |
 | 2018-05-23 | Multilevel Models |  |
 | 2018-05-30 | Adventures in Covariance |  |
-| 2018-06-13 | Missing Data and Other Opportunities (recorded) | PLUS |
+| 2018-06-13 | Missing Data and Other Opportunities (recorded) | AlexanderKlettner |
 | 2018-06-20 | Horoscopes (recorded) | PLUS |
 
 ## Presenting
