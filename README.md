@@ -43,7 +43,7 @@ Recordings: https://tinyurl.com/yamyfma7
 | 2018-04-18 | Interactions | SimoneMüller |
 | 2018-04-25 | Markov chain Monte Carlo Estimation | philippgrafendorfe |
 | 2018-05-02 | Big Entropy and the Generalized Linear Model |  tini12345|
-| 2018-05-09 | Counting and Classification |  |
+| 2018-05-09 | Counting and Classification | msteger93 |
 | 2018-05-16 | Monsters and Mixtures | judithparkinson |
 | 2018-05-23 | Multilevel Models |  |
 | 2018-05-30 | Adventures in Covariance |  |
