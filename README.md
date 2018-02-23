@@ -1,4 +1,4 @@
-# Statistical Rethinking
+﻿# Statistical Rethinking
 
 This repository represent the joint effort of [Paris Lodron University of Salzburg](https://www.uni-salzburg.at/index.php?id=52) and the [City University of New York Graduate School of Public Health and Health Policy](http://sph.cuny.edu/) in creating an interactive online reading of McElreath's *Statistical Rethinking: A Bayesian Course with Examples in R and Stan*. In each of our weekly meetings, a chapter of the book is presented by a developing instructor with a focus on using the R language. Our meetings are open to all (see details below) and our materials are licensed under the Creative Commons Attribution-ShareAlike 4.0 International Public License. We hope you find these materials useful and will join our sessions.
 
@@ -45,7 +45,7 @@ Recordings: https://tinyurl.com/yamyfma7
 | 2018-05-02 | Big Entropy and the Generalized Linear Model |  tini12345|
 | 2018-05-09 | Counting and Classification | msteger93 |
 | 2018-05-16 | Monsters and Mixtures | judithparkinson |
-| 2018-05-23 | Multilevel Models |  |
+| 2018-05-23 | Multilevel Models | tamara-maier |
 | 2018-05-30 | Adventures in Covariance |  |
 | 2018-06-13 | Missing Data and Other Opportunities (recorded) | AlexanderKlettner |
 | 2018-06-20 | Horoscopes (recorded) | PLUS |
