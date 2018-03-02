@@ -1,28 +1,75 @@
-Untitled
+Linear Models
 ========================================================
-author: 
-date: 
-autosize: true
+author: neoglez
+date: February 2, 2018
+width: 1440
+height: 950
 
-First Slide
-========================================================
+McElreath, R. *Statistical Rethinking: A Bayesian Course with Examples in R and
+Stan*. (CRC Press/Taylor & Francis Group, 2016).
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+Motivation
+=======================================================
+incremental: true
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+![Ptolemaic Universe](figures/figure_4.1.png)
 
-Slide With Code
-========================================================
+The model is incredibly wrong, yet makes quite good predictions.
+
+***
+
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Geoz_wb_en.svg/1200px-Geoz_wb_en.svg.png)
+
+Why normal distributions are normal
+=======================================================
+incremental: true
+
+
+- Normal by addition
+- Normal by multiplication
+- Normal by log-multiplication
+- Using Gaussian distribution as a skeleton for our hypotheses
+ - Ontological justification -> "the world is full of Gaussians"
+ - Epistemological justification -> "it represents a particular state of ignorance"
+
+
+Gaussian distribution
+=======================================================
+incremental: true
+
+$$P(y|\mu, \sigma) = \frac{1}{{\sqrt {2\pi\sigma^2} }}e^{- \left( {y - \mu } \right)^2 / 2\sigma^2}$$
+
+- This looks monstrous ;)
+  - but the important bit is just the $(y-\mu)^2$
+
+A language for describing models
+=======================================================
+incremental: true
+
+$outcome_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i = \beta * predictor_i$
+
+$\beta\sim Normal(0,10)$
+
+$\sigma\sim HalfCauchy(0, 1)$
+
+1. *Outcome* variables
+2. For each outcome variable define likehood distribution
+3. Set of measurements we hope to predict -> *predictor* variables
+4. Relate the exact shape of the likehood distribution to the predictor variables
+5. Priors for all paramerters of the model
+
+>> If that does not make much sense, good. That indicates that you are holding the right textbook ;)
+
+A language for describing models: Re-describing the globe tossing model
+=======================================================================
+incremental: true
 
 ```{r}
-summary(cars)
-```
-
-Slide With Plot
-========================================================
-
-```{r, echo=FALSE}
-plot(cars)
+w <- 6; n <- 9;
+p_grid <- seq(from=0,to=1,length.out=100)
+posterior <- dbinom(w,n,p_grid)*dunif(p_grid,0,1)
+posterior <- posterior/sum(posterior)
+plot(posterior)
 ```
