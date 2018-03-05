@@ -73,3 +73,172 @@ posterior <- dbinom(w,n,p_grid)*dunif(p_grid,0,1)
 posterior <- posterior/sum(posterior)
 plot(posterior)
 ```
+
+<!--- $$P(y|w, n) = \frac{Binomial(w|n, p)Uniform(p|0,1)}{\int_ Binomial(w|n, p)Uniform(p|0,1)}$$ -->
+
+A Gaussian model of height
+==========================
+incremental: true
+
+- Two parameters: **$\mu, \sigma$**
+- Posterior -> distribution of Gaussian distributions
+
+>> Yes, a distribution of distributions. If that doesn’t
+make sense yet, then that just means you are being honest with yourself.
+
+A Gaussian model of height: the data
+====================================
+incremental: true
+
+```{r}
+library(rethinking)
+data(Howell1)
+d <- Howell1
+str( d )
+```
+
+A Gaussian model of height: the model
+=====================================
+incremental: true
+
+$h_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i\sim Normal(178, 20)$
+
+$\sigma\sim Uniform(0, 50)$
+
+
+Adding a predictor
+==================
+incremental: true
+
+>> What we’ve done is a Gaussian model of height in a population of adults. But it
+doesn’t really have the usual feel of “regression” to it.
+
+<div style="height: 50%; width:50%">
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Botswana_051.jpg/1200px-Botswana_051.jpg">
+</div>
+
+***
+
+```{r}
+d2 <- d[ d$age >= 18 , ]
+plot( d2$height ~ d2$weight )
+```
+
+>> How do we take our Gaussian model from the previous section and incorporate predictor variables?
+
+Adding a predictor: the linear model strategy
+=============================================
+incremental: true
+
+Recall the Guassian model
+
+$h_i\sim Normal(\mu, \sigma)$
+
+$\mu\sim Normal(178, 20)$
+
+$\sigma\sim Uniform(0, 50)$
+
+>> Now how do we get weight into a Gaussian model of height?
+
+***
+
+$h_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i = \alpha + \beta x_i$
+
+$\alpha\sim Normal(178, 100)$
+
+$\beta\sim Normal(0,10)$
+
+$\sigma\sim Uniform(0, 50)$
+
+
+
+
+Adding a predictor: fitting the model
+=====================================
+incremental: false
+
+$h_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i = \alpha + \beta x_i$
+
+$\alpha\sim Normal(178, 100)$
+
+$\beta\sim Normal(0,10)$
+
+$\sigma\sim Uniform(0, 50)$
+
+***
+
+```{r, eval=FALSE}
+height ~ dnorm(mu,sigma)
+mu <- a + b*weight
+a ~ dnorm(156,100)
+b ~ dnorm(0,10)
+sigma ~ dunif(0,50)
+```
+
+Fitting the model: build the MAP model fit
+===========================================
+incremental: false
+
+```{r, eval=FALSE}
+# load data again, since it's a long way back
+library(rethinking)
+data(Howell1)
+d <- Howell1
+d2 <- d[ d$age >= 18 , ]
+
+# fit model
+m4.3 <- map(
+  alist(
+    height ~ dnorm( mu , sigma ) ,
+    mu <- a + b*weight ,
+    a ~ dnorm( 156 , 100 ) ,
+    b ~ dnorm( 0 , 10 ) ,
+    sigma ~ dunif( 0 , 50 )
+  ) ,
+data=d2 )
+```
+
+Adding a predictor: Interpreting the model fit
+==============================================
+incremental: true
+
+```{r, echo=FALSE}
+# load data again, since it's a long way back
+library(rethinking)
+data(Howell1)
+d <- Howell1
+d2 <- d[ d$age >= 18 , ]
+
+# fit model
+m4.3 <- map(
+  alist(
+    height ~ dnorm( mu , sigma ) ,
+    mu <- a + b*weight ,
+    a ~ dnorm( 156 , 100 ) ,
+    b ~ dnorm( 0 , 10 ) ,
+    sigma ~ dunif( 0 , 50 )
+  ) ,
+data=d2 )
+```
+
+```{r}
+precis( m4.3 )
+```
+
+Interpreting the model fit
+==============================================
+incremental: true
+
+- Plotting posterior inference against the data
+
+```{r}
+plot( height ~ weight , data=d2 )
+abline( a=coef(m4.3)["a"] , b=coef(m4.3)["b"] )
+```
+
