@@ -1,28 +1,268 @@
-Untitled
+Linear Models
 ========================================================
-author: 
-date: 
-autosize: true
+author: neoglez
+date: February 2, 2018
+width: 1440
+height: 950
 
-First Slide
-========================================================
+McElreath, R. *Statistical Rethinking: A Bayesian Course with Examples in R and
+Stan*. (CRC Press/Taylor & Francis Group, 2016).
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+Motivation
+=======================================================
+incremental: true
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+![Ptolemaic Universe](figures/figure_4.1.png)
 
-Slide With Code
-========================================================
+The model is incredibly wrong, yet makes quite good predictions.
+
+***
+
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Geoz_wb_en.svg/1200px-Geoz_wb_en.svg.png)
+
+Why normal distributions are normal
+=======================================================
+incremental: true
+
+
+- Normal by addition
+- Normal by multiplication
+- Normal by log-multiplication
+- Using Gaussian distribution as a skeleton for our hypotheses
+ - Ontological justification -> "the world is full of Gaussians"
+ - Epistemological justification -> "it represents a particular state of ignorance"
+
+
+Gaussian distribution
+=======================================================
+incremental: true
+
+$$P(y|\mu, \sigma) = \frac{1}{{\sqrt {2\pi\sigma^2} }}e^{- \left( {y - \mu } \right)^2 / 2\sigma^2}$$
+
+- This looks monstrous ;)
+  - but the important bit is just the $(y-\mu)^2$
+
+A language for describing models
+=======================================================
+incremental: true
+
+$outcome_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i = \beta * predictor_i$
+
+$\beta\sim Normal(0,10)$
+
+$\sigma\sim HalfCauchy(0, 1)$
+
+1. *Outcome* variables
+2. For each outcome variable define likehood distribution
+3. Set of measurements we hope to predict -> *predictor* variables
+4. Relate the exact shape of the likehood distribution to the predictor variables
+5. Priors for all paramerters of the model
+
+>> If that does not make much sense, good. That indicates that you are holding the right textbook ;)
+
+A language for describing models: Re-describing the globe tossing model
+=======================================================================
+incremental: true
 
 ```{r}
-summary(cars)
+w <- 6; n <- 9;
+p_grid <- seq(from=0,to=1,length.out=100)
+posterior <- dbinom(w,n,p_grid)*dunif(p_grid,0,1)
+posterior <- posterior/sum(posterior)
+plot( p_grid, posterior, type="b" ,
+xlab="probability of water" , ylab="posterior probability" )
+mtext( "Grid approximation with 100 points" )
 ```
 
-Slide With Plot
-========================================================
+<!--- $$P(y|w, n) = \frac{Binomial(w|n, p)Uniform(p|0,1)}{\int_ Binomial(w|n, p)Uniform(p|0,1)}$$ -->
+
+
+A Gaussian model of height
+==========================
+incremental: true
+
+- Two parameters: **$\mu, \sigma$**
+- Posterior -> distribution of Gaussian distributions
+
+>> Yes, a distribution of distributions. If that doesn’t
+make sense yet, then that just means you are being honest with yourself.
+
+A Gaussian model of height: the data
+====================================
+incremental: true
+
+```{r}
+library(rethinking)
+data(Howell1)
+d <- Howell1
+str( d )
+```
+
+A Gaussian model of height: the model
+=====================================
+incremental: true
+
+$h_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i\sim Normal(178, 20)$
+
+$\sigma\sim Uniform(0, 50)$
+
+
+Adding a predictor
+==================
+incremental: true
+
+>> What we’ve done is a Gaussian model of height in a population of adults. But it
+doesn’t really have the usual feel of “regression” to it.
+
+<div style="height: 50%; width:50%">
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Botswana_051.jpg/1200px-Botswana_051.jpg">
+</div>
+
+***
+
+```{r}
+d2 <- d[ d$age >= 18 , ]
+plot( d2$height ~ d2$weight )
+```
+
+>> How do we take our Gaussian model from the previous section and incorporate predictor variables?
+
+Adding a predictor: the linear model strategy
+=============================================
+incremental: true
+
+Recall the Guassian model
+
+$h_i\sim Normal(\mu, \sigma)$
+
+$\mu\sim Normal(178, 20)$
+
+$\sigma\sim Uniform(0, 50)$
+
+>> Now how do we get weight into a Gaussian model of height?
+
+***
+
+$h_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i = \alpha + \beta x_i$
+
+$\alpha\sim Normal(178, 100)$
+
+$\beta\sim Normal(0,10)$
+
+$\sigma\sim Uniform(0, 50)$
+
+
+
+
+Adding a predictor: fitting the model
+=====================================
+incremental: false
+
+$h_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i = \alpha + \beta x_i$
+
+$\alpha\sim Normal(178, 100)$
+
+$\beta\sim Normal(0,10)$
+
+$\sigma\sim Uniform(0, 50)$
+
+***
+
+```{r, eval=FALSE}
+height ~ dnorm(mu,sigma)
+mu <- a + b*weight
+a ~ dnorm(156,100)
+b ~ dnorm(0,10)
+sigma ~ dunif(0,50)
+```
+
+Fitting the model: build the MAP model fit
+===========================================
+incremental: false
+
+```{r, eval=FALSE}
+# load data again, since it's a long way back
+library(rethinking)
+data(Howell1)
+d <- Howell1
+d2 <- d[ d$age >= 18 , ]
+
+# fit model
+m4.3 <- map(
+  alist(
+    height ~ dnorm( mu , sigma ) ,
+    mu <- a + b*weight ,
+    a ~ dnorm( 156 , 100 ) ,
+    b ~ dnorm( 0 , 10 ) ,
+    sigma ~ dunif( 0 , 50 )
+  ) ,
+data=d2 )
+```
+
+Adding a predictor: Interpreting the model fit
+==============================================
+incremental: true
+
+>> Tables of estimates
 
 ```{r, echo=FALSE}
-plot(cars)
+# load data again, since it's a long way back
+library(rethinking)
+data(Howell1)
+d <- Howell1
+d2 <- d[ d$age >= 18 , ]
+
+# fit model
+m4.3 <- map(
+  alist(
+    height ~ dnorm( mu , sigma ) ,
+    mu <- a + b*weight ,
+    a ~ dnorm( 156 , 100 ) ,
+    b ~ dnorm( 0 , 10 ) ,
+    sigma ~ dunif( 0 , 50 )
+  ) ,
+data=d2 )
 ```
+
+```{r}
+precis( m4.3 )
+```
+
+- a person 1 kg heavier is expected to be 0.90 cm taller.
+
+- a person of weight 0 should be 114cm tall. This is nonsense, since real people always have positive weight, yet it is also true -> the value of the intercept is frequently uninterpretable without studying other parameters.
+
+Interpreting the model fit
+==============================================
+incremental: true
+
+>> Plotting posterior inference against the data
+
+```{r}
+plot( height ~ weight , data=d2 )
+abline( a=coef(m4.3)["a"] , b=coef(m4.3)["b"] )
+```
+
+Summary
+==============================================
+incremental: true
+
+>> Simple linear regression model, a framework for estimating the association between a predictor variable and an outcome variable.
+
+
+>> The Gaussian distribution comprises the likelihood in such models, because it counts up the relative numbers of
+ways different combinations of means and standard deviations can produce an observation.
+
+>> Fit Gaussian models to data -> the chapter introduced maximum a prior (MAP) **say what? wasn't that a posteriori?** estimation.
+
+>> Procedures for visualizing posterior distributions and posterior predictions.
+
+>> Next chapter -> regression models with more than one predictor variable.

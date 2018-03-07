@@ -37,8 +37,8 @@ Recordings: https://tinyurl.com/yamyfma7
 | 2018-02-07 | The Golem of Prague (recorded) | schifferl |
 | 2018-02-21 | Small Worlds and Large Worlds (recorded) | schifferl |
 | 2018-02-28 | Sampling the Imaginary (recorded) | ITtraveller |
-| 2018-03-07 | Linear Models |  |
-| 2018-03-14 | Multivariate Linear Models | neoglez |
+| 2018-03-07 | Sampling the Imaginary (exercises) | ITtraveller |
+| 2018-03-14 | Linear Models & Multivariate Linear Models $ | neoglez |
 | 2018-03-21 | Overfitting and Model Comparison | raph333  |
 | 2018-04-18 | Interactions | SimoneMüller |
 | 2018-04-25 | Markov chain Monte Carlo Estimation | philippgrafendorfe |
@@ -46,9 +46,11 @@ Recordings: https://tinyurl.com/yamyfma7
 | 2018-05-09 | Counting and Classification | msteger93 |
 | 2018-05-16 | Monsters and Mixtures | judithparkinson |
 | 2018-05-23 | Multilevel Models | tamara-maier |
-| 2018-05-30 | Adventures in Covariance |  |
+| 2018-05-30 | Adventures in Covariance | KlemensKurtz |
 | 2018-06-13 | Missing Data and Other Opportunities (recorded) | AlexanderKlettner |
 | 2018-06-20 | Horoscopes (recorded) | PLUS |
+
+$ only a brief review of linear models - please read both chapters for 3-14
 
 ## Presenting
 

@@ -1,28 +1,69 @@
-Untitled
+Multivariate Linear Models
 ========================================================
-author: 
-date: 
-autosize: true
+author: neoglez
+date: March 7, 2018
+width: 1440
+height: 950
 
-First Slide
-========================================================
+McElreath, R. *Statistical Rethinking: A Bayesian Course with Examples in R and
+Stan*. (CRC Press/Taylor & Francis Group, 2016).
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+Motivation
+=======================================================
+incremental: true
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Waffle_House_Museum_Exterior.jpg/220px-Waffle_House_Museum_Exterior.jpg" width="220" height="147">
 
-Slide With Code
-========================================================
+>> The number of Waffle House diners per million people is associated with divorce rate (in the year 2009) within the United States.
 
-```{r}
-summary(cars)
-```
+***
 
-Slide With Plot
-========================================================
+![](figures/figure_5.1.jpg)
 
-```{r, echo=FALSE}
-plot(cars)
-```
+>> Could always-available waffles and hash brown potatoes put marriage at risk? ;)
+
+>> Probably not. This is an example of a misleading correlation.
+
+Motivation
+=======================================================
+incremental: true
+
+- Correlation is not rare in nature.
+- In large data sets, every pair of variables has a statistically discernible non-zero correlation.
+- but...
+
+> Most correlations do not indicate causal relationships.
+
+
+***We need tools for distinguishing mere association from evidence of causation.***
+
+Reason for multivariate models
+=======================================================
+incremental: true
+
+1. Statistical "control" for ***confounds***.
+  Simpson's PARADOX
+
+2. Mutiple causation.
+
+3. Interactions.
+
+>> In this chapter, we begin to deal with the first of these two [three], using multivariate regression to deal with simple confounds and to take multiple measurements of influence.
+
+Focus: spurious vs. important correlations
+=============================================================================
+incremental: true
+
+1. Revealing ***spurious*** correlations
+
+2. Revealing ***important*** correlations
+
+> But multiple predictor variables can hurt as much as they can help.
+
+- Dangers of multivariate models -> ***multicollinearity***
+
+- Meet ***CATEGORICAL VARIABLES***
+
+> **Rethinking: Causal inference.** Despite its central importance, there is no unified approach to causal
+inference yet in the sciences or in statistics.
+
