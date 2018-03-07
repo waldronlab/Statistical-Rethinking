@@ -1,0 +1,137 @@
+---
+title: "Chapter 2"
+output: html_notebook
+---
+
+
+### Code 2.3 - 2.5
+```{r}
+p_grid <- seq(from = 0, to = 1, length.out = 20)
+
+prior <- ifelse(p_grid < 0.5, 1, 0)
+
+likelihood <- dbinom(6, size = 9, prob = p_grid)
+
+posterior <- likelihood*prior/sum(likelihood*prior)
+
+plot(p_grid, posterior, type = "b")
+```
+
+```{r}
+prior <- exp(-5*abs(p_grid - 0.5))
+
+likelihood <- dbinom(6, size = 9, prob = p_grid)
+
+posterior <- likelihood*prior/sum(likelihood*prior)
+
+plot(p_grid, posterior, type = "b")
+```
+###2.6
+```{r message=FALSE, warning=FALSE}
+library(rethinking)
+globe.qa <- map(
+alist(
+w ~ dbinom(9,p) , # binomial likelihood
+p ~ dunif(0,1) # uniform prior
+) ,
+data=list(w=6) )
+# display summary of quadratic approximation
+precis( globe.qa )
+```
+
+```{r}
+# analytical calculation 2.7
+w <- 6
+n <- 9
+curve( dbeta( x , w+1 , n-w+1 ) , from=0 , to=1 )
+# quadratic approximation
+curve( dnorm( x , 0.67 , 0.16 ) , lty=2 , add=TRUE )
+```
+
+### 2M1
+```{r}
+p_grid <- seq(from = 0, to = 1, length.out = 100)
+
+prior <- rep(1, 20)
+
+likelihood <- dbinom(3, size = 3, prob = p_grid)
+
+posterior <- likelihood*prior/sum(likelihood*prior)
+
+plot(p_grid, posterior, type = "b")
+```
+
+```{r}
+p_grid <- seq(from = 0, to = 1, length.out = 100)
+
+prior <- rep(1, 20)
+
+likelihood <- dbinom(3, size = 4, prob = p_grid)
+
+posterior <- likelihood*prior/sum(likelihood*prior)
+
+plot(p_grid, posterior, type = "b")
+```
+
+
+```{r}
+p_grid <- seq(from = 0, to = 1, length.out = 100)
+
+prior <- rep(1, 20)
+
+likelihood <- dbinom(5, size = 7, prob = p_grid)
+
+posterior <- likelihood*prior/sum(likelihood*prior)
+
+plot(p_grid, posterior, type = "b")
+```
+
+###2H1
+Just calculate the average likelihood of the event "gives birth to twins"
+```{r}
+(p_twins <- 0.5*0.1 + 0.5*0.2)
+```
+
+P(Species A|Gave birth to twins)
+```{r}
+(p_a_twins <- 0.1*0.5/p_twins)
+```
+
+### 2H3
+```{r}
+# probability of giving birth to twins and then to single infant
+(p_twins_single <- 0.1*0.9*0.5 + 0.2*0.8*0.5)
+# P(A|twins+single)=P(twins+single|A)*P(A)/P(twins_single)
+(p_A_ts <- 0.1*0.9*0.5/p_twins_single)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
