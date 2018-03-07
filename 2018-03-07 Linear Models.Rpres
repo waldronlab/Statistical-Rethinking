@@ -71,10 +71,13 @@ w <- 6; n <- 9;
 p_grid <- seq(from=0,to=1,length.out=100)
 posterior <- dbinom(w,n,p_grid)*dunif(p_grid,0,1)
 posterior <- posterior/sum(posterior)
-plot(posterior)
+plot( p_grid, posterior, type="b" ,
+xlab="probability of water" , ylab="posterior probability" )
+mtext( "Grid approximation with 100 points" )
 ```
 
 <!--- $$P(y|w, n) = \frac{Binomial(w|n, p)Uniform(p|0,1)}{\int_ Binomial(w|n, p)Uniform(p|0,1)}$$ -->
+
 
 A Gaussian model of height
 ==========================
@@ -208,6 +211,8 @@ Adding a predictor: Interpreting the model fit
 ==============================================
 incremental: true
 
+>> Tables of estimates
+
 ```{r, echo=FALSE}
 # load data again, since it's a long way back
 library(rethinking)
@@ -231,14 +236,33 @@ data=d2 )
 precis( m4.3 )
 ```
 
+- a person 1 kg heavier is expected to be 0.90 cm taller.
+
+- a person of weight 0 should be 114cm tall. This is nonsense, since real people always have positive weight, yet it is also true -> the value of the intercept is frequently uninterpretable without studying other parameters.
+
 Interpreting the model fit
 ==============================================
 incremental: true
 
-- Plotting posterior inference against the data
+>> Plotting posterior inference against the data
 
 ```{r}
 plot( height ~ weight , data=d2 )
 abline( a=coef(m4.3)["a"] , b=coef(m4.3)["b"] )
 ```
 
+Summary
+==============================================
+incremental: true
+
+>> Simple linear regression model, a framework for estimating the association between a predictor variable and an outcome variable.
+
+
+>> The Gaussian distribution comprises the likelihood in such models, because it counts up the relative numbers of
+ways different combinations of means and standard deviations can produce an observation.
+
+>> Fit Gaussian models to data -> the chapter introduced maximum a prior (MAP) **say what? wasn't that a posteriori?** estimation.
+
+>> Procedures for visualizing posterior distributions and posterior predictions.
+
+>> Next chapter -> regression models with more than one predictor variable.
