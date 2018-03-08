@@ -44,7 +44,7 @@ incremental: true
 1. Statistical "control" for ***confounds***.
   Simpson's PARADOX
 
-2. Mutiple causation.
+2. Multiple causation.
 
 3. Interactions.
 
@@ -67,3 +67,267 @@ incremental: true
 > **Rethinking: Causal inference.** Despite its central importance, there is no unified approach to causal
 inference yet in the sciences or in statistics.
 
+Spurious association: does marriage cause divorce?
+=============================================================================
+incremental: true
+
+![](figures/figure_5.2.jpg)
+
+***
+
+$D_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i = \alpha + \beta_A A_i$
+
+$\alpha\sim Normal(10, 10)$
+
+$\beta_A\sim Normal(0,1)$
+
+$\sigma\sim Uniform(0, 10)$
+
+
+Spurious association: some plotting
+=============================================================================
+incremental: true
+
+```{r, eval=FALSE}
+# load data
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+# standardize predictor, that is subtract the mean and divide by the standard deviation
+d$MedianAgeMarriage.s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/
+    sd(d$MedianAgeMarriage)
+
+# fit model
+m5.1 <- map(alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bA * MedianAgeMarriage.s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bA ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+) , data = d )
+
+```
+
+***
+
+- compute percentile interval of mean (strategy from page 105- chapter 4 )
+
+```{r, eval=FALSE}
+# first, generate a sequence of regular intervals of median age at marriage (MAM) to compute predictions for,
+# these values will be on the horizontal axis
+MAM.seq <- seq( from=-3 , to=3.5 , length.out=30 )
+# second, use link to compute a posterior distribution of mu for each unique MAM value on the horizontal axis
+mu <- link( m5.1 , data=data.frame(MedianAgeMarriage.s=MAM.seq) )
+# third, apply the function PI (prob=0.89 percentile interval) to mu matrix, that is compute the mean of each column (dimension “2”) of mu
+mu.PI <- apply( mu , 2 , PI )
+```
+
+Spurious association: some plotting
+=============================================================================
+incremental: true
+
+```{r, eval=FALSE}
+# plot it all
+plot( Divorce ~ MedianAgeMarriage.s , data=d , col=rangi2 )
+abline( m5.1 )
+shade( mu.PI , MAM.seq )
+```
+
+***
+
+```{r, echo=FALSE}
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+d$MedianAgeMarriage.s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/sd(d$MedianAgeMarriage)
+m5.1 <- map(alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bA * MedianAgeMarriage.s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bA ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+) , data = d )
+MAM.seq <- seq( from=-3 , to=3.5 , length.out=30 )
+mu <- link( m5.1 , data=data.frame(MedianAgeMarriage.s=MAM.seq) )
+mu.PI <- apply( mu , 2 , PI )
+plot( Divorce ~ MedianAgeMarriage.s , data=d , col=rangi2 )
+abline( m5.1 )
+shade( mu.PI , MAM.seq )
+```
+
+Spurious association: The question we want to answer is:
+========================================================
+incremental: true
+
+> What is the predictive value of a variable, once I already know all of the other predictor variables?
+
+1.- After I already know marriage rate, what additional value is there in also knowing age at marriage?
+
+2.- After I already know age at marriage, what additional value is there in also knowing marriage rate?
+
+
+Spurious association: Multivariate notation
+========================================================
+
+$D_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i = \alpha + \beta_R R_i + \beta_A A_i$
+
+$\alpha\sim Normal(10, 10)$
+
+$\beta_R\sim Normal(0,1)$
+
+$\beta_A\sim Normal(0,1)$
+
+$\sigma\sim Uniform(0, 10)$
+
+***
+
+> The first term is a constant, . Every State gets this.
+
+> The second term is the product of the marriage rate, Ri, and the coefficient, that measures the association
+between marriage rate and divorce rate.
+
+> The third term is similar, but for the association with median age at marriage instead.
+
+**A State’s divorce rate can be a function of its marriage rate or its
+median age at marriage.**
+
+Spurious association: Fitting the model
+=======================================
+```{r, echo=FALSE}
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+d$MedianAgeMarriage.s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/sd(d$MedianAgeMarriage)
+d$Marriage.s <- (d$Marriage - mean(d$Marriage))/sd(d$Marriage)
+```
+
+```{r}
+m5.3 <- map(
+  alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*Marriage.s + bA*MedianAgeMarriage.s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bR ~ dnorm( 0 , 1 ) ,
+    bA ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ) ,
+  data = d )
+precis( m5.3 )
+```
+
+***
+
+```{r}
+plot( precis(m5.3) )
+```
+
+> Once we know median age at marriage for a State, there is little or no additional predictive power in also knowing the rate of marriage in that State.
+
+Spurious association: Plotting multivariate posteriors
+======================================================
+incremental: true
+
+> I offer three types of interpretive plots:
+
+1.- Predictor residuals plots -> outcome <-> *residual* predictor
+
+2.- Counterfactual plots. -> imaginary experiments, predictions <-> predictor variables changed independently
+
+3.- Posterior prediction plots. -> model-based predictions (or error in prediction) <-> raw data
+
+> Each of these plot types has its advantages and deficiencies, depending upon the context and the question of interest.
+
+Plotting multivariate posteriors: Predictor residuals plots
+===========================================================
+incremental: true
+
+> To compute predictor residuals for either, we just use the other predictor to model it
+
+```{r, echo=FALSE}
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+d$MedianAgeMarriage.s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/
+  sd(d$MedianAgeMarriage)
+d$Marriage.s <- (d$Marriage - mean(d$Marriage))/sd(d$Marriage)
+```
+
+```{r}
+m5.4 <- map(alist(
+  Marriage.s ~ dnorm( mu , sigma ) ,
+  mu <- a + b*MedianAgeMarriage.s ,
+  a ~ dnorm( 0 , 10 ) ,
+  b ~ dnorm( 0 , 1 ) ,
+  sigma ~ dunif( 0 , 10 )
+) ,
+data = d )
+
+# compute expected value at MAP, for each State
+mu <- coef(m5.4)['a'] + coef(m5.4)['b']*d$MedianAgeMarriage.s
+# compute residual for each State
+m.resid <- d$Marriage.s - mu
+```
+
+***
+
+```{r}
+plot( Marriage.s ~ MedianAgeMarriage.s , d , col=rangi2 )
+abline( m5.4 )
+# loop over States
+for ( i in 1:length(m.resid) ) {
+  x <- d$MedianAgeMarriage.s[i] # x location of line segment
+  y <- d$Marriage.s[i] # observed endpoint of line segment
+  # draw the line segment
+  lines( c(x,x) , c(mu[i],y) , lwd=0.5 , col=col.alpha("black",0.7) )
+}
+```
+
+Plotting multivariate posteriors: Predictor residuals plots
+===========================================================
+incremental: true
+
+![](figures/figure_5.4.jpg)
+
+> There’s direct value in seeing the model-based predictions displayed against the outcome, after subtracting out the influence of other predictors.
+
+> But predictor variables can be related to one another in non-additive ways.
+
+
+Plotting multivariate posteriors: Counterfactual plots
+======================================================
+incremental: true
+
+![](figures/figure_5.4.jpg)
+
+> direct displays of the impact on prediction of a change in each variable.
+
+> but, if our goal is to intervene in the world, there may not be any realistic way to manipulate each predictor without also manipulating the others.
+
+Plotting multivariate posteriors: Posterior prediction plots
+============================================================
+incremental: true
+
+
+Masked relationships
+=============================================================================
+incremental: true
+
+When adding variables hurts
+=============================================================================
+incremental: true
+
+Categorical variables
+=============================================================================
+incremental: true
+
+Ordinary least squares and lm
+=============================================================================
+incremental: true
+
+Summary
+=============================================================================
+incremental: true
