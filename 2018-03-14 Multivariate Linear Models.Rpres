@@ -185,7 +185,7 @@ $\sigma\sim Uniform(0, 10)$
 
 ***
 
-> The first term is a constant, . Every State gets this.
+> The first term is a constant. Every State gets this.
 
 > The second term is the product of the marriage rate, Ri, and the coefficient, that measures the association
 between marriage rate and divorce rate.
@@ -311,9 +311,16 @@ Plotting multivariate posteriors: Posterior prediction plots
 ============================================================
 incremental: true
 
+> Check the model fit against the observed data.
+
+1.- Did the model fit correctly?
+
+2.- How does the model fail?
+
+
 
 Masked relationships
-=============================================================================
+====================
 incremental: true
 
 When adding variables hurts
