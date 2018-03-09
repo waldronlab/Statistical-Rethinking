@@ -41,7 +41,7 @@ Reason for multivariate models
 =======================================================
 incremental: true
 
-1. Statistical "control" for ***confounds***.
+1. Statistical "control" for ***confounds***. a.k.a. hidden variables
   Simpson's PARADOX
 
 2. Multiple causation.
@@ -318,23 +318,197 @@ incremental: true
 2.- How does the model fail?
 
 
-
 Masked relationships
 ====================
 incremental: true
+
+> Measure the direct influences of multiple factors on an outcome, when none of those influences is apparent from bivariate relationships.
+-> two predictor (e.g., $p_1, p_2$) variables that are correlated with one another but $p_1 +$ and $p_2 -$ with outcome.
+
+- Context: Composition of milk across primate species <-> Facts about species (e.g., body mass and brain size)
+
+```{r}
+library(rethinking)
+data(milk)
+d <- milk
+str(d)
+```
+
+Masked relationships: Milk and brain size
+=========================================
+incremental: true
+
+> Hypothesis: primates with larger brains produce more energetic milk, so that brains can grow quickly.
+
+```
+kcal.per.g : Kilocalories of energy per gram of milk.
+
+mass : Average female body mass, in kilograms.
+
+neocortex.perc : The percent of total brain mass that is neocortex mass.
+```
+> Question: to what extent energy content of milk (Kcal) is related to % brain mass that is neocortex.
+
+> We’ll end up needing *female body mass* as well, to see the masking that hides the relationships among
+the variables.
+
+Masked relationships: Milk and brain size
+=========================================
+incremental: true
+
+- after some data manipulation...
+
+```{r, echo=FALSE}
+library(rethinking)
+data(milk)
+d <- milk
+dcc <- d[ complete.cases(d) , ]
+m5.5 <- map(
+  alist(
+    kcal.per.g ~ dnorm( mu , sigma ) ,
+    mu <- a + bn*neocortex.perc ,
+    a ~ dnorm( 0 , 100 ) ,
+    bn ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 1 )
+  ) ,
+data=dcc )
+precis( m5.5 , digits=3 )
+coef(m5.5)["bn"] * ( 76 - 55 )
+np.seq <- 0:100
+pred.data <- data.frame( neocortex.perc=np.seq )
+mu <- link( m5.5 , data=pred.data , n=1e4 )
+mu.mean <- apply( mu , 2 , mean )
+mu.PI <- apply( mu , 2 , PI )
+plot( kcal.per.g ~ neocortex.perc , data=dcc , col=rangi2 )
+lines( np.seq , mu.mean )
+lines( np.seq , mu.PI[1,] , lty=2 )
+lines( np.seq , mu.PI[2,] , lty=2 )
+```
+
+***
+
+- posterior mean for bn is very small
+
+-
+
+Masked relationships: Milk and brain size
+=========================================
+incremental: true
+
+![](figures/figure_5.7.jpg)
+
+***
+
+- The MAP line is weakly positive, but it is highly imprecise.
+
+- Log-mass is negatively correlated with kilocalories.
+
+- This influence does seem stronger than that of neocortex percent, although in the opposite direction. It is quite uncertain (wide confidence interval - wide range of weak and stronger relationships).
+
+- now we add both: $\mu_i = \alpha + \beta_n n_i + \beta_m log(m_i)$
+
+- **neocortex** and **body mass** <-> **milk energy**, but in **opposite** directions. This **masks** each variable’s relationship with the outcome, unless both are considered simultaneously.
+
+
 
 When adding variables hurts
 =============================================================================
 incremental: true
 
-Categorical variables
+> There are many potential predictor variables to add to a regression model.
+
+> primate milk data frame -> Why not just fit a model that includes all 7?
+
+- **several good, purely statistical reasons to avoid doing this**
+
+1.- Multicollinearity -> very strong correlation between two or more predictor variables
+
+2.- Post-Treatment bias -> statistically controlling for consequences of a causal factor
+
+3.- Overfitting -> next (6) chapter
+
+
+When adding variables hurts: Multicollinearity
 =============================================================================
 incremental: true
 
-Ordinary least squares and lm
-=============================================================================
+> Multicollinear legs -> simulation example is predicting an individual’s height using the length of his or her legs as predictor variables.
+
+> When two predictor variables are very strongly correlated, including both in a model may lead to confusion.
+
+> How strong does a correlation have to get, before you should start worrying about multicollinearity? There’s no easy answer to that question.
+
+1.- Data reduction procedure, like **principle components or factor analysis**, and then to use the components/factors as predictor variables.
+
+2.- but in other fields, this is considered voodoo ;) -> **principle components** and factors are notoriously hard to interpret, and there are usually hidden decisions that go into producing them.
+
+> Multicollinearity is really a member of a family of problems with fitting models -> non-identifiability
+
+When adding variables hurts: Post-treatment bias
+================================================
 incremental: true
+
+> Mistaken inferences that arise from omitting predictor variables -> omitted variable bias
+
+> Mistaken inferences arising from including variables that are consequences of other variables -> **post-treatment bias**.
+
+
+Categorical variables
+=====================
+incremental: true
+
+> To what extent an outcome changes as a result of presence or absence of a category?
+
+- Sex: male, female
+
+- Developmental status: infantil, juvenil, adult
+
+- Geographic region: Africa, Europe, Melanesia
+
+> Interpreting estimates for categorical variables can be harder than for regular continuous variables.
+
+Categorical variables: Binary categories
+========================================
+incremental: true
+
+Categorical variables: Many categories
+========================================
+incremental: true
+
+> There’s no need to make another for the category Ape, because it will be the default, “intercept” category. In fact, if you try to include a dummy variable for apes, you’ll up with a non-identifiable model (page 149). Can you figure out why?
+
+
+Ordinary least squares and lm
+=============================
+incremental: true
+
+> Gaussian regression models a.k.a Ordinary Least Squares regression **(OLS)**
+
+> way of estimating the parameters of a linear regression.
+
+Ordinary least squares and lm: Design formulas
+==============================================
+incremental: true
+
+Ordinary least squares and lm: Using lm
+==============================================
+incremental: true
+
+Ordinary least squares and lm: Building map formulas from lm formulas
+======================================================================
+incremental: true
+
 
 Summary
 =============================================================================
 incremental: true
+
+> Introduced multiple regression-> constructing descriptive models for how the mean of a measurement is associated with more than one predictor variable.
+
+> Defining question of multiple regression is: **What is the value of knowing each predictor, once we already know the other predictors?**
+
+1.- A focus on the value of the predictors for description of the sample, instead of forecasting a future sample.
+
+2.- The assumption that the value of each predictor **does not depend** upon the values of the other predictors.
+
+> **Next -> confront these two issues**
