@@ -41,7 +41,18 @@ $(4)$ has again two predictors and the coeficients are different.
 
 **5M1.** Invent your own example of a spurious correlation. An outcome variable should be correlated with both predictor variables. But when both predictors are entered in the same model, the correlation between the outcome and one of the predictors should mostly vanish (or at least be greatly reduced).
 
-[https://en.wikipedia.org/wiki/Spurious_relationship](example taken and adapted from wikipedia) Ice cream sales. These sales are the highest when the rate of drownings in city swimming pools is highest. The sales are also very high when there is a heat wave. To allege that ice cream sales cause drowning, or vice versa, would be to imply a spurious relationship beetween the two. In reality, a heat wave may have caused both. That is, by considering the temperature as a predictor, we would observe that the correlation between drowinings and ice sales would almost vanish.
+[https://en.wikipedia.org/wiki/Spurious_relationship](example taken and adapted from wikipedia) Ice cream sales. These sales are the highest when the rate of drownings in city swimming pools is highest. The sales are also very high when there is a heat wave. To allege that ice cream sales cause drowning, or vice versa, would be to imply a spurious relationship beetween the two. In reality, a heat wave may have caused both. That is, by considering the temperature as a predictor, we would observe that the correlation between drowinings and ice sales would almost vanish.Let us simulate that. Following the overthinking on page 134, we asume $x_{real}$ to be the truly causal predictor, the temperature/heat wave that influence both the outcome $y$ (drowning) and a spurious predictor $x_{spur}$, ice cream sales.
+
+```{r}
+N <- 100 # number of cases
+x_real <- rnorm( N, 2 ) # x_real, temperature as Gaussian with mean 0 and stddev 2
+x_spur <- rnorm( N , x_real ) # x_spur, ice creame sales as Gaussian with mean=x_real
+y <- rnorm( N , x_real ) # y, drowinings as Gaussian with mean=x_real
+d <- data.frame(y,x_real,x_spur) # bind all together in data frame
+plot(y ~ x_spur)
+plot(y ~ x_real)
+```
+
 
 ### Hard.
 
@@ -119,7 +130,7 @@ abline( m5h1.2 )
 shade( mu.PI , GS.seq )
 ```
 
-Is either variable important for predicting fox body weight?
+- Is either variable important for predicting fox body weight?
 
 By looking at the grapichs we observe very weak correlations. Therefore we conclude that either the territory size nor group size are important to predict body weight.
 
@@ -159,3 +170,69 @@ m5h2 <- map(
 precis(m5h2)
 plot( precis(m5h2))
 ```
+
+- Plot the predictions of the model for each predictor, holding the other predictor
+constant at its mean.
+
+We consider this plot to be *counterfactual* because we are asked to *see* how the prediction changes as we change one predictor at a time while holding the other constant at its mean.  
+
+```{r}
+# plot predictions of model for territory size keeping group size contant at its mean
+#####################################################################################
+
+# prepare new counterfactual data
+A.avg <- mean( d$groupsize.s )
+R.seq <- seq( from=-3 , to=3.5 , length.out=100 )
+pred.data <- data.frame(
+  area.s=R.seq,
+  groupsize.s=A.avg
+)
+# compute counterfactual mean weight (mu)
+mu <- link( m5h2 , data=pred.data )
+mu.mean <- apply( mu , 2 , mean )
+mu.PI <- apply( mu , 2 , PI )
+# simulate counterfactual weight outcomes
+#R.sim <- sim( m5h2 , data=pred.data , n=1e4 )
+#R.PI <- apply( R.sim , 2 , PI )
+# display predictions, hiding raw data with type="n"
+plot( weight ~ area.s , data=d , type="n" )
+mtext( "groupsze.s = 0" )
+lines( R.seq , mu.mean )
+shade( mu.PI , R.seq )
+#shade( R.PI , R.seq )
+```
+
+```{r}
+# plot predictions of model for group size keeping territory size contant at its mean
+#####################################################################################
+
+# prepare new counterfactual data
+A.seq <- seq( from=-3 , to=3.5 , length.out=100 )
+R.avg <- mean( d$area.s )
+
+pred.data <- data.frame(
+  area.s=R.avg,
+  groupsize.s=A.seq
+)
+# compute counterfactual mean weight (mu)
+mu <- link( m5h2 , data=pred.data )
+mu.mean <- apply( mu , 2 , mean )
+mu.PI <- apply( mu , 2 , PI )
+# simulate counterfactual weight outcomes
+#R.sim <- sim(m5h2, data=pred.data, n=1e4)
+#R.PI <- apply(R.sim, 2, PI)
+# display predictions, hiding raw data with type="n"
+plot( weight ~ groupsize.s , data=d , type="n" )
+mtext( "area.s = 0" )
+lines( R.seq , mu.mean )
+shade( mu.PI , R.seq )
+#shade( R.PI , R.seq )
+```
+
+- What does this model say about the importance of each variable?
+
+We observe that the variables are indeed important but one is positively correlated (territory size) and the other negatively correlated (group size).
+
+- Why do you get different results than you got in the exercise just above?
+
+Because the correlation between the variables and the outcome is masked.
