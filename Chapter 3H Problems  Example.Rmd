@@ -1,0 +1,109 @@
+---
+title: "Chapter 3H Exercises"
+author: "Sal Leggio"
+date: "March 2, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r , echo = TRUE}
+
+library(rmarkdown)
+library(plotly)
+library(tidyverse)
+library(rethinking)
+
+rm(list=ls(all=TRUE))
+data(homeworkch3)
+```
+3H1
+===
+
+## Using grid approximation, compute the posterior distribution for the probability of a birth being a boy. Assume a uniform prior probability. Which parameter value maximizes the posterior probability?
+
+## what should we use for likelihood?
+
+- likelihood is  L(theta | x) = P (X=x | theta) 
+- function of the parameter, not of the data
+- gives probability of the data if the parameter = theta
+
+For this problem, it'a a binomial distribution.
+How many boys should we expect in families with two children?
+What is P(boy)?
+
+Two Reasonable Answers:
+- (1) common sense says P(boy) = 0.5
+- (2) demography says global sex ratio at birth = 1.07 = (number of boys) / (number of girls). This implies P(boy) = (1.07)/(2.07) = .517
+
+Less Reasonable
+- (3) our data says 111 boys out of 200 children, so P(boy) = 0.555. This is much higher than the global average, and is probably due to sampling error, but that's our data.
+
+
+First we'll look at option (1)
+
+```{r, echo=TRUE}
+# define array of parameter values
+sex_grid <- seq( from = 0 , to = 1 , length.out = 100 ) 
+
+
+# define prior - initially uniform 
+prior <- rep( 1 , 100)
+
+#compute likelihood at each point 
+likelihood <- dbinom( 1, size=2 , prob = sex_grid) # chance of 1 boy in a 2 child family
+
+#compute posterior
+postr   <- likelihood * prior
+posterior <- postr / sum(postr) 
+
+# plot
+plot (sex_grid , posterior , type = "b" , 
+      xlab = "probability of boy" , ylab = "posterior probability")
+mtext("100 pts")
+```
+## what parameter value maximizes posterior probability?
+
+```{r , echo=TRUE}
+which.max(posterior)
+sex_grid[which.max(posterior)]  ## sex_grid is an array of parameter values
+```
+So our model seems to lean towards Option 1, so far.
+
+
+
+3H2
+===
+
+## Using the sample function, draw 10,000 random parameter values from the posterior distribution. Calculate 50%, 89%, 97% highest posterior density intervals.
+
+```{r, echo=TRUE}
+# sampleSEX is a sample of the parameters from sex_grid, using the posterior probabilities
+sampleSEX <- sample (sex_grid , prob = posterior , size = 1e4 , replace = TRUE ) 
+HPDI( sampleSEX , prob = 0.50)
+HPDI( sampleSEX , prob = 0.89)
+HPDI( sampleSEX , prob = 0.97)
+```
+
+
+3H3 Part A
+=========
+
+## Use rbinom to simulate 10,000 replicates of 200 births. You should end up with 10,000 numbers, each one a count of boys out of 200 births. Compare the distribution of predicted numbers to the actual count in the data (111 boys out of 200).
+
+```{r , echo=TRUE}
+
+# I am guessing that we use all possible values of the parameter to do this
+# w_boy is the number of boys in each sample of 200 kids
+w_boy <- rbinom(1e4 , size = 200 , prob =  sampleSEX)
+
+hist(w_boy , xlab = "No. of Boys" , main = "w_boy" ,
+     border = "blue" , col = "green")
+
+boys <- birth1 + birth2
+hist(boys, xlab = "No. of Boys" , main = "Data",
+     border = "blue" , col = "salmon")
+
+
+```
