@@ -1,0 +1,40 @@
+---
+title: "Chapter 4"
+author: "Philipp Grafendorfer"
+date: "15 März 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(rethinking)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##4M1
+```{r}
+# plot the prior
+curve(dnorm(x, 0, 10), from = -30, to = 30)
+```
+
+```{r}
+curve(dunif(x, 0, 10), from = -5, to = 15)
+```
+
+```{r}
+# simulate observed y- values from the prior
+sample_mu <- rnorm(1e4, 0, 10)
+sample_sigma <- runif(1e4, 0, 10)
+prior_y <- rnorm(1e4, mean = sample_mu, sd = sample_sigma)
+dens(prior_y)
+```
+
+```{r}
+flist <- alist(
+  height ~ dnorm(mu, sigma),
+  mu ~ dnorm(10, 0),
+  sigma ~ dunif(0, 10)
+)
+
+m4.1 <- map(flist, data)
+```
+
