@@ -41,10 +41,10 @@ Reason for multivariate models
 =======================================================
 incremental: true
 
-1. Statistical "control" for ***confounds***.
+1. Statistical "control" for ***confounds***. a.k.a. hidden variables
   Simpson's PARADOX
 
-2. Mutiple causation.
+2. Multiple causation.
 
 3. Interactions.
 
@@ -54,6 +54,8 @@ Focus: spurious vs. important correlations
 =============================================================================
 incremental: true
 
+> The goodies
+
 1. Revealing ***spurious*** correlations
 
 2. Revealing ***important*** correlations
@@ -62,8 +64,500 @@ incremental: true
 
 - Dangers of multivariate models -> ***multicollinearity***
 
+- Dangers of multivariate models -> ***post-treatment bias***
+
 - Meet ***CATEGORICAL VARIABLES***
 
 > **Rethinking: Causal inference.** Despite its central importance, there is no unified approach to causal
 inference yet in the sciences or in statistics.
 
+Spurious association: does marriage cause divorce?
+=============================================================================
+incremental: true
+
+![](figures/figure_5.2.jpg)
+
+***
+
+$D_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i = \alpha + \beta_A A_i$
+
+$\alpha\sim Normal(10, 10)$
+
+$\beta_A\sim Normal(0,1)$
+
+$\sigma\sim Uniform(0, 10)$
+
+
+Spurious association: some plotting
+=============================================================================
+incremental: true
+
+```{r, eval=FALSE}
+# load data
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+# standardize predictor, that is subtract the mean and divide by the standard deviation
+d$MedianAgeMarriage.s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/
+    sd(d$MedianAgeMarriage)
+
+# fit model
+m5.1 <- map(alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bA * MedianAgeMarriage.s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bA ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+) , data = d )
+
+```
+
+***
+
+- compute percentile interval of mean (strategy from page 105- chapter 4 )
+
+```{r, eval=FALSE}
+# first, generate a sequence of regular intervals of median age at marriage (MAM) to compute predictions for,
+# these values will be on the horizontal axis
+MAM.seq <- seq( from=-3 , to=3.5 , length.out=30 )
+# second, use link to compute a posterior distribution of mu for each unique MAM value on the horizontal axis
+mu <- link( m5.1 , data=data.frame(MedianAgeMarriage.s=MAM.seq) )
+# third, apply the function PI (prob=0.89 percentile interval) to mu matrix, that is compute the mean of each column (dimension “2”) of mu
+mu.PI <- apply( mu , 2 , PI )
+```
+
+Spurious association: some plotting
+=============================================================================
+incremental: true
+
+```{r, eval=FALSE}
+# plot it all
+plot( Divorce ~ MedianAgeMarriage.s , data=d , col=rangi2 )
+abline( m5.1 )
+shade( mu.PI , MAM.seq )
+```
+
+***
+
+```{r, echo=FALSE}
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+d$MedianAgeMarriage.s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/sd(d$MedianAgeMarriage)
+m5.1 <- map(alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bA * MedianAgeMarriage.s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bA ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+) , data = d )
+MAM.seq <- seq( from=-3 , to=3.5 , length.out=30 )
+mu <- link( m5.1 , data=data.frame(MedianAgeMarriage.s=MAM.seq) )
+mu.PI <- apply( mu , 2 , PI )
+plot( Divorce ~ MedianAgeMarriage.s , data=d , col=rangi2 )
+abline( m5.1 )
+shade( mu.PI , MAM.seq )
+```
+
+Spurious association: The question we want to answer is:
+========================================================
+incremental: true
+
+> What is the predictive value of a variable, once I already know all of the other predictor variables?
+
+1.- After I already know marriage rate, what additional value is there in also knowing age at marriage?
+
+2.- After I already know age at marriage, what additional value is there in also knowing marriage rate?
+
+
+Spurious association: Multivariate notation
+========================================================
+
+$D_i\sim Normal(\mu_i, \sigma)$
+
+$\mu_i = \alpha + \beta_R R_i + \beta_A A_i$
+
+$\alpha\sim Normal(10, 10)$
+
+$\beta_R\sim Normal(0,1)$
+
+$\beta_A\sim Normal(0,1)$
+
+$\sigma\sim Uniform(0, 10)$
+
+***
+
+> The first term is a constant. Every State gets this.
+
+> The second term is the product of the marriage rate, Ri, and the coefficient, that measures the association
+between marriage rate and divorce rate.
+
+> The third term is similar, but for the association with median age at marriage instead.
+
+**A State’s divorce rate can be a function of its marriage rate or its
+median age at marriage.**
+
+Spurious association: Fitting the model
+=======================================
+```{r, echo=FALSE}
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+d$MedianAgeMarriage.s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/sd(d$MedianAgeMarriage)
+d$Marriage.s <- (d$Marriage - mean(d$Marriage))/sd(d$Marriage)
+```
+
+```{r}
+m5.3 <- map(
+  alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*Marriage.s + bA*MedianAgeMarriage.s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bR ~ dnorm( 0 , 1 ) ,
+    bA ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ) ,
+  data = d )
+precis( m5.3 )
+```
+
+***
+
+```{r}
+plot( precis(m5.3) )
+```
+
+> Once we know median age at marriage for a State, there is little or no additional predictive power in also knowing the rate of marriage in that State.
+
+Spurious association: Plotting multivariate posteriors
+======================================================
+incremental: true
+
+> I offer three types of interpretive plots:
+
+1.- Predictor residuals plots -> outcome <-> *residual* predictor
+
+2.- Counterfactual plots. -> imaginary experiments, predictions <-> predictor variables changed independently
+
+3.- Posterior prediction plots. -> model-based predictions (or error in prediction) <-> raw data
+
+> Each of these plot types has its advantages and deficiencies, depending upon the context and the question of interest.
+
+Plotting multivariate posteriors: Predictor residuals plots
+===========================================================
+incremental: true
+
+> To compute predictor residuals for either, we just use the other predictor to model it
+
+```{r, echo=FALSE}
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+d$MedianAgeMarriage.s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/
+  sd(d$MedianAgeMarriage)
+d$Marriage.s <- (d$Marriage - mean(d$Marriage))/sd(d$Marriage)
+```
+
+```{r}
+m5.4 <- map(alist(
+  Marriage.s ~ dnorm( mu , sigma ) ,
+  mu <- a + b*MedianAgeMarriage.s ,
+  a ~ dnorm( 0 , 10 ) ,
+  b ~ dnorm( 0 , 1 ) ,
+  sigma ~ dunif( 0 , 10 )
+) ,
+data = d )
+
+# compute expected value at MAP, for each State
+mu <- coef(m5.4)['a'] + coef(m5.4)['b']*d$MedianAgeMarriage.s
+# compute residual for each State
+m.resid <- d$Marriage.s - mu
+```
+
+***
+
+```{r}
+plot( Marriage.s ~ MedianAgeMarriage.s , d , col=rangi2 )
+abline( m5.4 )
+# loop over States
+for ( i in 1:length(m.resid) ) {
+  x <- d$MedianAgeMarriage.s[i] # x location of line segment
+  y <- d$Marriage.s[i] # observed endpoint of line segment
+  # draw the line segment
+  lines( c(x,x) , c(mu[i],y) , lwd=0.5 , col=col.alpha("black",0.7) )
+}
+```
+
+Plotting multivariate posteriors: Predictor residuals plots
+===========================================================
+incremental: true
+
+![](figures/figure_5.4.jpg)
+
+> There’s direct value in seeing the model-based predictions displayed against the outcome, after subtracting out the influence of other predictors.
+
+> But predictor variables can be related to one another in non-additive ways.
+
+
+Plotting multivariate posteriors: Counterfactual plots
+======================================================
+incremental: true
+
+![](figures/figure_5.4.jpg)
+
+> direct displays of the impact on prediction of a change in each variable.
+
+> but, if our goal is to intervene in the world, there may not be any realistic way to manipulate each predictor without also manipulating the others.
+
+Plotting multivariate posteriors: Posterior prediction plots
+============================================================
+incremental: true
+
+> Check the model fit against the observed data.
+
+1.- Did the model fit correctly? -> e.g., **predicted divorce rate** against **observed**
+
+```{r, eval=FALSE}
+plot( mu.mean ~ d$Divorce , col=rangi2 , ylim=range(mu.PI) ,
+xlab="Observed divorce" , ylab="Predicted divorce" )
+abline( a=0 , b=1 , lty=2 )
+for ( i in 1:nrow(d) )
+lines( rep(d$Divorce[i],2) , c(mu.PI[1,i],mu.PI[2,i]) ,
+col=rangi2 )
+```
+
+2.- How does the model fail? -> e.g., residual plots that show **the mean prediction error** for **each row**
+
+
+Masked relationships
+====================
+incremental: true
+
+> Measure the direct influences of multiple factors on an outcome, when none of those influences is apparent from bivariate relationships.
+-> two predictor (e.g., $p_1, p_2$) variables that are correlated with one another but $p_1 +$ and $p_2 -$ with outcome.
+
+- Context: Composition of milk across primate species <-> Facts about species (e.g., body mass and brain size)
+
+```{r}
+library(rethinking)
+data(milk)
+d <- milk
+str(d)
+```
+
+Masked relationships: Milk and brain size
+=========================================
+incremental: true
+
+> Hypothesis: primates with larger brains produce more energetic milk, so that brains can grow quickly.
+
+```
+kcal.per.g : Kilocalories of energy per gram of milk.
+
+mass : Average female body mass, in kilograms.
+
+neocortex.perc : The percent of total brain mass that is neocortex mass.
+```
+> Question: to what extent energy content of milk (Kcal) is related to % brain mass that is neocortex.
+
+> We will end up needing *female body mass* as well, to see the masking that hides the relationships among
+the variables.
+
+Masked relationships: Milk and brain size
+=========================================
+incremental: true
+
+- after some data manipulation...
+
+```{r, echo=FALSE}
+library(rethinking)
+data(milk)
+d <- milk
+dcc <- d[ complete.cases(d) , ]
+m5.5 <- map(
+  alist(
+    kcal.per.g ~ dnorm( mu , sigma ) ,
+    mu <- a + bn*neocortex.perc ,
+    a ~ dnorm( 0 , 100 ) ,
+    bn ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 1 )
+  ) ,
+data=dcc )
+precis( m5.5 , digits=3 )
+coef(m5.5)["bn"] * ( 76 - 55 )
+np.seq <- 0:100
+pred.data <- data.frame( neocortex.perc=np.seq )
+mu <- link( m5.5 , data=pred.data , n=1e4 )
+mu.mean <- apply( mu , 2 , mean )
+mu.PI <- apply( mu , 2 , PI )
+plot( kcal.per.g ~ neocortex.perc , data=dcc , col=rangi2 )
+lines( np.seq , mu.mean )
+lines( np.seq , mu.PI[1,] , lty=2 )
+lines( np.seq , mu.PI[2,] , lty=2 )
+```
+
+***
+
+- posterior mean for bn is very small
+
+- this association is not so impressive
+
+- More importantly, it isn’t very precise -> The 89% interval of the parameter extends a good distance on both sides of zero.
+
+Masked relationships: Milk and brain size
+=========================================
+incremental: true
+
+![](figures/figure_5.7.jpg)
+
+***
+
+- The MAP line is weakly positive, but it is highly imprecise.
+
+- Log-mass is negatively correlated with kilocalories.
+
+- This influence does seem stronger than that of neocortex percent, although in the opposite direction. It is quite uncertain (wide confidence interval - wide range of weak and stronger relationships).
+
+- now we add both: $\mu_i = \alpha + \beta_n n_i + \beta_m log(m_i)$
+
+- **neocortex** and **body mass** <-> **milk energy**, but in **opposite** directions. This **masks** each variable’s relationship with the outcome, unless both are considered simultaneously.
+
+
+
+When adding variables hurts
+=============================================================================
+incremental: true
+
+> There are many potential predictor variables to add to a regression model.
+
+> primate milk data frame -> Why not just fit a model that includes all 7?
+
+- **several good, purely statistical reasons to avoid doing this**
+
+1.- Multicollinearity -> very strong correlation between two or more predictor variables
+
+2.- Post-Treatment bias -> statistically controlling for consequences of a causal factor
+
+3.- Overfitting -> next (6) chapter
+
+
+When adding variables hurts: Multicollinearity
+=============================================================================
+incremental: true
+
+> Multicollinear legs -> simulation example is predicting an individual’s height using the length of his or her legs as predictor variables.
+
+> When two predictor variables are very strongly correlated, including both in a model may lead to confusion.
+
+> How strong does a correlation have to get, before you should start worrying about multicollinearity? There’s no easy answer to that question.
+
+1.- Data reduction procedure, like **principle components or factor analysis**, and then to use the components/factors as predictor variables.
+
+2.- but in other fields, this is considered voodoo ;) -> **principle components** and factors are notoriously hard to interpret, and there are usually hidden decisions that go into producing them.
+
+> Multicollinearity is really a member of a family of problems with fitting models -> non-identifiability
+
+When adding variables hurts: Post-treatment bias
+================================================
+incremental: true
+
+> Mistaken inferences that arise from omitting predictor variables -> omitted variable bias
+
+> Mistaken inferences arising from including variables that are consequences of other variables -> **post-treatment bias**.
+
+
+Categorical variables
+=====================
+incremental: true
+
+> To what extent an outcome changes as a result of presence or absence of a category?
+
+- Sex: male, female
+
+- Developmental status: infantil, juvenil, adult
+
+- Geographic region: Africa, Europe, Melanesia
+
+> Interpreting estimates for categorical variables can be harder than for regular continuous variables.
+
+Categorical variables: Binary categories
+========================================
+incremental: true
+
+```{r}
+library(rethinking)
+data(Howell1)
+d <- Howell1
+m5.15 <- map(
+  alist(
+    height ~ dnorm( mu , sigma ) ,
+    mu <- a + bm*male ,
+    a ~ dnorm( 178 , 100 ) ,
+    bm ~ dnorm( 0 , 10 ) ,
+    sigma ~ dunif( 0 , 50 )
+  ) ,
+data=d )
+precis(m5.15)
+````
+
+***
+
+- parameter $\alpha$ (a) is now the average height among females -> the estimate says that the expected average female
+height is 135 cm.
+
+- The parameter $\beta$ then tells us the average difference between males and females, 7.3 cm.
+
+
+Categorical variables: Many categories and adding regular predictor variables
+=============================================================================
+incremental: true
+
+> To include $k$ categories in a linear model, you require $k-1$ dummy variables. Each dummy variable indicates, with the value 1, a unique category. The category with no dummy variable assigned to it ends up again as the "intercept" category.
+
+- $\mu_i = \alpha + \beta_{NWM}NWM_i + \beta_{OWM}OWM_i + \beta_SS_i$
+
+- Adding regular predictor variables
+
+$\mu_i = \alpha + \beta_{NWM}NWM_i + \beta_{OWM}OWM_i + \beta_SS_i + \beta_FF_i$
+
+  - $F_i$ is percentage fat
+
+
+
+
+Ordinary least squares and lm
+=============================
+incremental: true
+
+> Gaussian regression models a.k.a Ordinary Least Squares regression **(OLS)**
+
+> way of estimating the parameters of a linear regression.
+
+Ordinary least squares and lm: Design formulas
+==============================================
+incremental: true
+
+Ordinary least squares and lm: Using lm
+==============================================
+incremental: true
+
+Ordinary least squares and lm: Building map formulas from lm formulas
+======================================================================
+incremental: true
+
+
+Summary
+=============================================================================
+incremental: true
+
+> Introduced multiple regression-> constructing descriptive models for how the mean of a measurement is associated with more than one predictor variable.
+
+> Defining question of multiple regression is: **What is the value of knowing each predictor, once we already know the other predictors?**
+
+1.- A focus on the value of the predictors for description of the sample, instead of forecasting a future sample.
+
+2.- The assumption that the value of each predictor **does not depend** upon the values of the other predictors.
+
+> **Next -> confront these two issues**

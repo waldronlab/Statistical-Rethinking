@@ -1,12 +1,13 @@
 ---
-title: "untitled"
-author: "unknown"
+title: "Multivariate Linear Models Practice"
+author: "neoglez"
 date: "March 7, 2018"
 output:
   html_document:
+    code_folding: hide
     fig_height: 7
-    fig_retina: NULL
-    code_folding: "hide"
+    fig_retina: null
+  pdf_document: default
 ---
 
 ## `knitr` Options
@@ -19,7 +20,219 @@ knitr::opts_chunk$set(results = "hold")
 ## `R` Packages
 
 ```{r, message=FALSE}
-library(readr)
 ```
 
 ## Pratice
+
+### Easy.
+
+**5E1.** Which of the linear models below are multiple linear regressions?
+
+  (1) $\mu_i = \alpha + \beta x_i$
+  (2) $\mu_i = \beta_x x_i + \beta_z z_i$
+  (3) $\mu_i = \alpha + \beta(x_i - z_i)$
+  (4) $\mu_i = \alpha + \beta_x x_i + \beta_z z_i$
+  
+$(2)$ which has two predictors ($x_i, z_i$), we can consider the intercept in this case to be $\alpha = 0$
+$(3)$ is also mutivariate ($x_i, z_i$). In this case the coefficient is the same for both predictors.
+$(4)$ has again two predictors and the coeficients are different.
+
+### Medium.
+
+**5M1.** Invent your own example of a spurious correlation. An outcome variable should be correlated with both predictor variables. But when both predictors are entered in the same model, the correlation between the outcome and one of the predictors should mostly vanish (or at least be greatly reduced).
+
+[https://en.wikipedia.org/wiki/Spurious_relationship](example taken and adapted from wikipedia) Ice cream sales. These sales are the highest when the rate of drownings in city swimming pools is highest. The sales are also very high when there is a heat wave. To allege that ice cream sales cause drowning, or vice versa, would be to imply a spurious relationship beetween the two. In reality, a heat wave may have caused both. That is, by considering the temperature as a predictor, we would observe that the correlation between drowinings and ice sales would almost vanish.Let us simulate that. Following the overthinking on page 134, we asume $x_{real}$ to be the truly causal predictor, the temperature/heat wave that influence both the outcome $y$ (drowning) and a spurious predictor $x_{spur}$, ice cream sales.
+
+```{r}
+N <- 100 # number of cases
+x_real <- rnorm( N, 2 ) # x_real, temperature as Gaussian with mean 0 and stddev 2
+x_spur <- rnorm( N , x_real ) # x_spur, ice creame sales as Gaussian with mean=x_real
+y <- rnorm( N , x_real ) # y, drowinings as Gaussian with mean=x_real
+d <- data.frame(y,x_real,x_spur) # bind all together in data frame
+plot(y ~ x_spur)
+plot(y ~ x_real)
+```
+
+
+### Hard.
+
+All three exercises below use the same data, data(foxes) (part of rethinking). The urban fox (Vulpes vulpes) is a successful exploiter of human habitat. Since urban foxes move in packs and defend territories, data on habitat quality and population density is also included. The data frame has five columns:
+
+  (1) group: Number of the social group the individual fox belongs to
+  (2) avgfood: The average amount of food available in the territory
+  (3) groupsize: The number of foxes in the social group
+  (4) area: Size of the territory
+  (5) weight: Body weight of the individual fox
+  
+**5H1.** Fit two bivariate Gaussian regressions, using map: (1) body weight as a linear function of territory size (area), and (2) body weight as a linear function of groupsize. Plot the results of these regressions, displaying the MAP regression line and the 95% interval of the mean. Is either variable important for predicting fox body weight?
+
+(1) Body weight as a linear function of territory size (area). Plot the result of this regression.
+
+```{r}
+# Load library and data
+library(rethinking)
+data(foxes)
+d <- foxes
+
+# standardize territory size (predictor)
+d$area.s <- (d$area-mean(d$area))/
+sd(d$area)
+
+# fit model with map
+m5h1.1 <- map(
+  alist(
+    d$weight ~ dnorm( mu , sigma ) ,
+    mu <- a + bTs * area.s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bTs ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ) , data = d )
+
+# compute percentile interval of mean
+TS.seq <- seq( from=-3 , to=3.5 , length.out=30 )
+mu <- link( m5h1.1 , data=data.frame(area.s=TS.seq) )
+mu.PI <- apply( mu , 2 , PI, prob=0.95 )
+# plot it all
+plot( weight ~ area.s , data=d , col=rangi2 )
+abline( m5h1.1 )
+shade( mu.PI , TS.seq )
+```
+
+(2) Body weight as a linear function of groupsize. Plot the result of this regression.
+
+```{r}
+# Load library and data
+library(rethinking)
+data(foxes)
+d <- foxes
+
+# standardize group size (predictor)
+d$groupsize.s <- (d$groupsize-mean(d$groupsize))/
+sd(d$groupsize)
+
+# fit model with map
+m5h1.2 <- map(
+  alist(
+    d$weight ~ dnorm( mu , sigma ) ,
+    mu <- a + bGs * groupsize.s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bGs ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ) , data = d )
+
+# compute percentile interval of mean
+GS.seq <- seq( from=-3 , to=3.5 , length.out=100 )
+mu <- link( m5h1.2 , data=data.frame(groupsize.s=GS.seq) )
+mu.PI <- apply( mu , 2 , PI, prob=0.95 )
+# plot it all
+plot( weight ~ groupsize.s , data=d , col=rangi2 )
+abline( m5h1.2 )
+shade( mu.PI , GS.seq )
+```
+
+- Is either variable important for predicting fox body weight?
+
+By looking at the grapichs we observe very weak correlations. Therefore we conclude that either the territory size nor group size are important to predict body weight.
+
+**5H2.** Now fit a multiple linear regression with weight as the outcome and both area and groupsize
+as predictor variables. Plot the predictions of the model for each predictor, holding the other predictor
+constant at its mean. What does this model say about the importance of each variable? Why do you
+get different results than you got in the exercise just above?
+
+- fit a multiple linear regression with weight as the outcome and both area and groupsize
+as predictor variables.
+
+```{r}
+# Load library and data
+library(rethinking)
+data(foxes)
+d <- foxes
+
+# standardize territory size (predictor)
+d$area.s <- (d$area-mean(d$area))/
+sd(d$area)
+
+# standardize group size (predictor)
+d$groupsize.s <- (d$groupsize-mean(d$groupsize))/
+sd(d$groupsize)
+
+# fit model with map
+m5h2 <- map(
+  alist(
+    d$weight ~ dnorm( mu , sigma ) ,
+    mu <- a + bTs * area.s + bGs * groupsize.s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bTs ~ dnorm( 0, 1 ),
+    bGs ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ) , data = d )
+
+precis(m5h2)
+plot( precis(m5h2))
+```
+
+- Plot the predictions of the model for each predictor, holding the other predictor
+constant at its mean.
+
+We consider this plot to be *counterfactual* because we are asked to *see* how the prediction changes as we change one predictor at a time while holding the other constant at its mean.  
+
+```{r}
+# plot predictions of model for territory size keeping group size contant at its mean
+#####################################################################################
+
+# prepare new counterfactual data
+A.avg <- mean( d$groupsize.s )
+R.seq <- seq( from=-3 , to=3.5 , length.out=100 )
+pred.data <- data.frame(
+  area.s=R.seq,
+  groupsize.s=A.avg
+)
+# compute counterfactual mean weight (mu)
+mu <- link( m5h2 , data=pred.data )
+mu.mean <- apply( mu , 2 , mean )
+mu.PI <- apply( mu , 2 , PI )
+# simulate counterfactual weight outcomes
+#R.sim <- sim( m5h2 , data=pred.data , n=1e4 )
+#R.PI <- apply( R.sim , 2 , PI )
+# display predictions, hiding raw data with type="n"
+plot( weight ~ area.s , data=d , type="n" )
+mtext( "groupsze.s = 0" )
+lines( R.seq , mu.mean )
+shade( mu.PI , R.seq )
+#shade( R.PI , R.seq )
+```
+
+```{r}
+# plot predictions of model for group size keeping territory size contant at its mean
+#####################################################################################
+
+# prepare new counterfactual data
+A.seq <- seq( from=-3 , to=3.5 , length.out=100 )
+R.avg <- mean( d$area.s )
+
+pred.data <- data.frame(
+  area.s=R.avg,
+  groupsize.s=A.seq
+)
+# compute counterfactual mean weight (mu)
+mu <- link( m5h2 , data=pred.data )
+mu.mean <- apply( mu , 2 , mean )
+mu.PI <- apply( mu , 2 , PI )
+# simulate counterfactual weight outcomes
+#R.sim <- sim(m5h2, data=pred.data, n=1e4)
+#R.PI <- apply(R.sim, 2, PI)
+# display predictions, hiding raw data with type="n"
+plot( weight ~ groupsize.s , data=d , type="n" )
+mtext( "area.s = 0" )
+lines( R.seq , mu.mean )
+shade( mu.PI , R.seq )
+#shade( R.PI , R.seq )
+```
+
+- What does this model say about the importance of each variable?
+
+We observe that the variables are indeed important but one is positively correlated (territory size) and the other negatively correlated (group size).
+
+- Why do you get different results than you got in the exercise just above?
+
+Because the correlation between the variables and the outcome is masked.

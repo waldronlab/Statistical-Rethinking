@@ -1,0 +1,165 @@
+---
+title: "Chapter 3H Exercises"
+author: "Sal Leggio"
+date: "March 2, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r , echo = TRUE}
+
+library(rmarkdown)
+library(plotly)
+library(tidyverse)
+library(rethinking)
+
+rm(list=ls(all=TRUE))
+data(homeworkch3)
+```
+3H1
+===
+
+## Using grid approximation, compute the posterior distribution for the probability of a birth being a boy. Assume a uniform prior probability. Which parameter value maximizes the posterior probability?
+
+## what should we use for likelihood?
+
+- likelihood is  L(theta | x) = P (X=x | theta) 
+- function of the parameter, not of the data
+- gives probability of the data if the parameter = theta
+
+For this problem, it'a a binomial distribution.
+How many boys should we expect in families with two children?
+What is P(boy)?
+
+Two Reasonable Answers:
+- (1) common sense says P(boy) = 0.5
+- (2) demography says global sex ratio at birth = 1.07 = (number of boys) / (number of girls). This implies P(boy) = (1.07)/(2.07) = .517
+
+Less Reasonable
+- (3) our data says 111 boys out of 200 children, so P(boy) = 0.555. This is much higher than the global average, and is probably due to sampling error, but that's our data.
+
+
+First we'll look at option (1)
+
+```{r, echo=TRUE}
+# define array of parameter values
+sex_grid <- seq( from = 0 , to = 1 , length.out = 100 ) 
+
+
+# define prior - initially uniform 
+prior <- rep( .01 , 100)
+
+# compute likelihood at each point 
+# using the data, 111 boys out of 200
+# what is the probabiity of getting this result given various parameters?
+likelihood <- dbinom( 111, size=200 , prob = sex_grid) # chance of 1 boy in a 2 child family
+
+#compute posterior
+postr   <- likelihood * prior
+posterior <- postr / sum(postr)
+
+# next line looks wrong, you are already multiplying normalized probabilities
+#posterior <- postr / sum(postr) 
+
+# plot
+plot (sex_grid , posterior , type = "b" , 
+      xlab = "probability of boy" , ylab = "posterior probability" ,
+      col = "steelblue")
+mtext("100 pts")
+```
+## what parameter value maximizes posterior probability?
+
+```{r , echo=TRUE}
+which.max(posterior)
+sex_grid[which.max(posterior)]  ## sex_grid is an array of parameter values
+```
+
+
+3H2
+===
+
+## Using the sample function, draw 10,000 random parameter values from the posterior distribution. Calculate 50%, 89%, 97% highest posterior density intervals.
+
+```{r, echo=TRUE}
+# sampleSEX is a sample of the parameters from sex_grid, using the posterior probabilities
+sampleSEX <- sample (sex_grid , prob = posterior , size = 1e4 , replace = TRUE ) 
+HPDI( sampleSEX , prob = 0.50)
+HPDI( sampleSEX , prob = 0.89)
+HPDI( sampleSEX , prob = 0.97)
+```
+
+
+3H3 
+=========
+
+## Use rbinom to simulate 10,000 replicates of 200 births. You should end up with 10,000 numbers, each one a count of boys out of 200 births. Compare the distribution of predicted numbers to the actual count in the data (111 boys out of 200).
+
+```{r , echo=TRUE}
+
+# I am guessing that we use all possible values of the parameter to do this
+# w_boy is the number of boys in each sample of 200 kids
+samples1  <- sample(sex_grid, 1e4, replace = TRUE , prob = posterior)
+w_boy <- rbinom(1e4 , size = 200 , prob = samples1)
+
+hist(w_boy , xlab = "No. of Boys" , main = "w_boy" ,
+     border = "blue" , col = "green")
+lines (dens (w_boy , col = "red") )
+
+
+boys <- birth1 + birth2
+hist(boys, xlab = "No. of Boys" , main = "Data",
+     border = "blue" , col = "salmon")
+
+
+w_boy2 <- w_boy / 100
+
+
+summary(w_boy2)
+summary(boys)
+
+## the distribution of the simulated data is different from the observed data
+
+```
+
+3H4
+===
+
+## Compare 10,000 counts of boys from 100 simulated first borns, to the number of boys in birth1
+
+```{r, echo= TRUE}
+sum(birth1)  ## 51 of the first born are male
+
+w_birth1<- rbinom(1e4 , size = 100 , prob =  0.51)
+summary(w_birth1)
+## note that mean and median are 51, same as the number of boys in birth1
+
+
+hist(w_birth1, xlab = "No. of Boys" , main = "Simulate First Born Males",
+     border ="blue" , col = "salmon")
+
+```
+
+3H5
+===
+
+## The model assumes that sex of first and 2nd births are independent. To check this assumption, focus now on second births that followed female first borns (birth1 = 0).Compare 10,000 simulated counts of boys to only those second births that followed girls. 
+
+## To do this correctly, you need to count the number of first born who were girls and simulate that many births, 10,000 times. 
+
+Isn't this the same distribution as before? 49 girls in a hundred means 51 boys out of a hundred. Just subtract the boy counts form 100 to get girl counts.
+
+   
+## Compare the actual count of boys in the simulation to the observed counts of boys following girls
+
+``` {r, echo = TRUE}
+second_births <- tibble(birth1, birth2)
+second_births <- filter (second_births, birth1 == 0)
+   ## second births now has 49 observations, corresponding to the 49 first born girls
+
+summary(second_births$birth2)
+
+
+```
+##  80% of the second births following the first birth of a girl are boys
