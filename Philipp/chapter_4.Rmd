@@ -38,3 +38,96 @@ flist <- alist(
 m4.1 <- map(flist, data)
 ```
 
+## 4H1
+```{r}
+library(rethinking)
+data("Howell1")
+d <- Howell1
+d2 <- d[d$age >= 18,]
+```
+
+Fit the model and sum up the resulting parameters.
+```{r}
+m4.2 <- map(
+  alist(
+    height ~ dnorm(mu, sigma),
+    mu <- a + b*weight,
+    a ~ dnorm(156, 100),
+    b ~ dnorm(0, 10),
+    sigma ~ dunif(0, 50)
+  ),
+  data = d2
+)
+precis(m4.2, corr = T)
+```
+
+Sample from the posterior distribution
+```{r}
+post <- extract.samples(m4.2)
+post[1:10,]
+```
+
+The link function
+```{r}
+mu <- link(m4.2)
+```
+
+
+make the prediction
+```{r}
+weight.seq <- c(46.95, 43.72, 64.78, 32.59, 54.63)
+mu <- link(m4.2, data = data.frame(weight = weight.seq))
+str(mu)
+```
+
+```{r}
+# use type="n" to hide raw data 4.55
+plot( height ~ weight , d2 , type = "n" )
+# loop over samples and plot each mu value
+for (i in 1:100 )
+points( weight.seq , mu[i,] , pch = 16 , col = col.alpha(rangi2,0.1) )
+```
+
+```{r}
+(weight.seq)
+(mu.mean <- apply(mu, 2, mean))
+(mu.HPDI <- apply(mu, 2, HPDI, prob = 0.89))
+```
+
+## 4H2
+```{r}
+d3 <- d[d$age < 18,]
+m4.3 <- map(
+  alist(
+    height ~ dnorm(mu, sigma),
+    mu <- a + b*weight,
+    a ~ dnorm(200, 100),
+    b ~ dnorm(2.72, 0.07),
+    sigma ~ dunif(0, 10)
+  ),
+  data = d3
+)
+precis(m4.3, corr = T)
+```
+
+```{r}
+mu <- link(m4.3)
+mu.HPDI <- apply(mu, 2, HPDI)
+mu.mean <- apply(mu, 2 , mean)
+sim.height <- sim(m4.3, data = list(weight = d3$weight))
+height.PI <- apply(sim.height, 2, PI, prob = 0.89)
+
+plot(height ~ weight, data = d3, col = col.alpha(rangi2,0.7))
+abline(a = coef(m4.3)["a"], b = coef(m4.3)["b"])
+shade(mu.HPDI, d3$weight) # one cant even see that
+shade(height.PI, d3$weight)
+```
+
+
+
+
+
+
+
+
+
