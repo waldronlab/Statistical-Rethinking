@@ -123,10 +123,49 @@ shade(mu.HPDI, d3$weight) # one cant even see that
 shade(height.PI, d3$weight)
 ```
 
+## 4H3
 
+```{r}
+m4.4 <- map(
+  alist(
+    height ~ dnorm(mu, sigma),
+    mu <- alpha + beta*log(weight),
+    alpha ~ dnorm(178, 100),
+    beta ~ dnorm(0, 100),
+    sigma ~ dunif(0, 50)
+  ),
+  data = d
+)
+precis(m4.4, corr = T)
+```
 
+```{r}
+plot(height ~ log(weight), data = d, col = col.alpha(rangi2,0.8))
+```
 
+One could have expected that the result will be linear. so now the linear regression will fit quite nicely.
 
+```{r}
+post <- extract.samples(m4.4)
+weight.seq <- seq(from=1, to=100, length.out = 100)
+
+# modelling of mu:
+mu.link <- function(weight) post$alpha + post$beta * log(weight)
+mu <- sapply(X = weight.seq,  FUN = mu.link)
+mu.mean <- apply(mu, 2, mean)
+mu.HPDI <- apply(mu, 2, HPDI, prob = 0.89)
+
+# simulate heights and compute HPDI
+height.link <- function(weight) rnorm(n = nrow(post), mean = mu.link(weight), sd = post$sigma)
+height.samples <- sapply(X = weight.seq, FUN = height.link)
+height.hpdi <- apply(X = height.samples, MARGIN = 2, FUN = HPDI, prob = .89)
+
+#plot
+plot(height ~ weight, data = d, col = col.alpha(rangi2, .4))
+lines(x = weight.seq, y = mu.mean)
+shade(object = mu.HPDI, lim = weight.seq)
+shade(object = height.hpdi, lim = weight.seq)
+```
 
 
 
