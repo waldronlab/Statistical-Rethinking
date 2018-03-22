@@ -1,28 +1,374 @@
-Untitled
+Overfitting, Regularization and Information Criteria
 ========================================================
-author: 
-date: 
+author: Raphael Peer
+date: 21-3-2018
 autosize: true
 
-First Slide
+Schedule for today's talk
 ========================================================
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+- The problem of overfitting and model selection
+- Information theory and Information Criterions
+- Regularization
+- Exercises
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
 
-Slide With Code
+
+Part I: Overfitting and model selection
+========================================================
+
+
+Example: body mass vs. brain volume in hominin species
+========================================================
+![alt text](figures/overfitting_images/overfitting.png)
+
+
+In sample vs. out of sample error
+========================================================
+![alt text](figures/overfitting_images/in_out_sample.png)
+
+(image from https://thebayesianobserver.wordpress.com/tag/sample-complexity/)
+
+
+Effect of dropping one data point
+========================================================
+![alt text](figures/overfitting_images/dropping_one_datapoint.png)
+
+
+What is a good model?
+========================================================
+
+- Every model contains uncertainty
+- A good model has less uncertainty than a bad model
+- But how can we measure uncertainty...?
+
+
+
+Part II: Information theory and Information Criterions
+========================================================
+
+Information Entropy: A measure for uncertainty
+========================================================
+
+
+![alt text](figures/overfitting_images/H.png)
+
+
+Entropy H increases with the number of possible outcomes
+========================================================
+```{r}
+p1 <- c( 0.3 , 0.7 )
+cat('H1 = ', -sum( p1*log(p1) ))
+
+p2 <- c( 0.2 , 0.2, 0.6 )
+cat('H2 = ', -sum( p2*log(p2) ))
+```
+
+
+Entropy H is larger the more uniform the probabilities are
+========================================================
+```{r}
+p1 <- c( 0.1 , 0.9 )
+cat('H1 = ', -sum( p1*log(p1) ))
+
+p2 <- c( 0.5 , 0.5 )
+cat('H2 = ', -sum( p2*log(p2) ))
+```
+
+
+How can Entropy help us with model selection?
+========================================================
+
+- Assume, we knew the real probabilities of events (which of course we don't).
+- How much does the uncertainty increase, if we use estimated probabilities (model) instead?
+- For a good model, this divergence should be as small as possible.
+
+
+Kullback-Leibler Divergence
+========================================================
+
+![alt text](figures/overfitting_images/DKL.png)
+
+
+Kullback-Leibler Divergence: Example
+========================================================
+
+real probabilities for rain / no rain in Salzburg: p = (0.5 , 0.5)
+
+Estimated probabilites for rain / no rain in Salzburg: q = (0.3 , 0.7)
+```{r}
+p <- c(0.5,0.5)  # real probabilites of rain / no rain in Salzburg
+q <- c(0.3,0.7)  # estimated probabilites
+
+cat('DKL = ', (-sum( p*log(p)) + sum( q*log(q))))
+```
+
+
+Kullback-Leibler Divergence
+========================================================
+
+Because the real probabilites p are unknown, KL-Divergence from them cannot be computed.
+
+However, to select te best model, we only need to know which one is closest (not how close).
+
+Deviance
+========================================================
+
+![alt text](figures/overfitting_images/deviance.png)
+
+Still just a measure for goodness of fit: will always decrease with additional parameters
+
+
+Akaike Information Criterion
+========================================================
+
+![alt text](figures/overfitting_images/AIK.png)
+
+Uses deviance (goodness of fit) but introduces as penalty for the the number of parameters.
+
+Note: no priors used for the AIC
+
+
+Deviance Information Criterion (DIC):  
+========================================================
+
+Posterior distribution of deviance.
+
+
+Widely Acceptable Information Criterion (WAIC):  
+========================================================
+
+For comparison: AIC
+
+![alt text](figures/overfitting_images/aik2.png)
+
+In short, use AIC and:
+- Replace the log-likelyhood with a the average log-likelihood of each training data point
+- replace the number of parameters k with a measure of the " effective number of parameters"
+
+
+Part III: Regularization
+========================================================
+
+Concept: Certain parameters are deemed more likely than others.
+
+
+Example: Gaussian Priors
+========================================================
+
+![alt text](figures/overfitting_images/priors.png)
+
+
+Experiment with simulated data
+========================================================
+
+Fit models with different number of parameters
+![alt text](figures/overfitting_images/prior_line.png)
+
+
+Observations
+========================================================
+- Priors have a higher effect for small sample size
+- Priors reduce the goodness of fit on the training data
+- Priors reduce overfitting but may lead to unterfitting
+- Weak priors: not effective in preventing overfitting
+- Strong priors: may lead to underfitting
+
+
+
+
+
+
+Part IV: Exercises
+========================================================
+
+
+6E1
+========================================================
+State the three motivating criteria that define information entropy. Try to express each in your
+own words.
+
+- Should be continuous: no jumps in Entropy due to slight changes in probabilites
+- Should increase with the number of possible outcomes
+- Should be larger for more uniform probabilites and smaller if the probabilities are wildly different
+
+6E2
+========================================================
+Suppose a coin is weighted such that, when it is tossed and lands on a table, it comes up heads
+70% of the time. What is the entropy of this coin?
+
+```{r}
+p <- c( 0.3 , 0.7 )
+cat('H = ', -sum( p*log(p )))
+```
+
+6E3
+========================================================
+Suppose a four-sided dice is loaded such that, when tossed onto a table, it shows 1 20%, 2
+25%, 3 25%, and 4 30% of the time. What is the entropy of this die?
+
+```{r}
+p <- c( 0.2, 0.25, 0.25, 0.3 )
+cat('H = ', -sum( p*log(p )))
+```
+
+6E4
+========================================================
+Suppose another four-sided die is loaded such that it never shows “4”. The other three sides
+show equally often. What is the entropy of this dice?
+
+```{r}
+p <- c( 1/3, 1/3, 1/3 )
+cat('H = ', -sum( p*log(p )))
+```
+
+6M2
+========================================================
+Explain the difference between model selection and model averaging. What information is lost
+under model selection? What information is lost under model averaging?
+
+- Model selection:  
+The best model is chosen (according to some criterion). We loose the information how much better than the other models it was.
+
+- Model averaging:  
+Average predicions over multiple - presumably good - models. If the errors of these models are not completely correlated, the predicion accuracy increases.
+
+
+6M3
+========================================================
+When comparing models with an information criterion, why must all models be fit to exactly
+the same observations? What would happen to the information criterion values, if the models were
+fit to different numbers of observations?
+
+Information Criterions use the deviance D to compare models.  
+D is a sum over all data points.  
+Hence, for a fair comparison, the number of data points has to be equal.  
+
+Exercises on the Howell !Kung demography data
 ========================================================
 
 ```{r}
-summary(cars)
+library(rethinking)
+data(Howell1)
+k <- Howell1
+k$age <- (k$age - mean(k$age))/sd(k$age)
+set.seed( 1000 )
+i <- sample(1:nrow(k),size=nrow(k)/2)
+k1 <- k[ i , ]
+k2 <- k[ -i , ]
 ```
 
-Slide With Plot
+
+Fit models
 ========================================================
 
-```{r, echo=FALSE}
-plot(cars)
+Use the same prior for all parameters
+```{r}
+prior_b <- 0  # if the standard deviation is reasonably large, it does not really matter if the 
+# mean is set to 0 or 1 or any other small number
+
+prior_sd <- 10  # 10 is a strong prior / 1000 would be a very weak prior for standard deviation
 ```
+
+First order 
+========================================================
+
+```{r}
+m1 <- map(
+  alist(
+  height ~ dnorm( mu , sigma ) ,
+  mu <- a + b1*weight ,
+  a ~ dnorm( 156 , prior_sd ) ,
+  b1 <- dnorm( prior_b , prior_sd ) ,
+  sigma ~ dunif( 0 , prior_sd )
+  ),
+  data=k1
+)
+m1
+```
+
+
+Second order
+========================================================
+```{r}
+m2 <- map(
+  alist(
+  height ~ dnorm( mu , sigma ) ,
+  mu <- a + b1*weight + b2*I(weight^2),
+  a ~ dnorm( 156 , prior_sd ) ,
+  b1 <- dnorm( prior_b , prior_sd ) ,
+  b2 <- dnorm( prior_b, prior_sd ) ,
+  sigma ~ dunif( 0 , prior_sd )
+  ),
+  data=k1
+)
+m2
+```
+
+
+Third order
+========================================================
+```{r, echo=F}
+m3 <- map(
+  alist(
+  height ~ dnorm( mu , sigma ) ,
+  mu <- a + b1*weight + b2*I(weight^2) + b3*I(weight^3),
+  a ~ dnorm( 156 , prior_sd ) ,
+  b1 <- dnorm( prior_b , prior_sd ) ,
+  b2 <- dnorm( prior_b , prior_sd ) ,
+  b3 <- dnorm( prior_b , prior_sd ) ,
+  sigma ~ dunif( 0 , prior_sd )
+  ),
+  data=k1
+)
+m3
+```
+
+Fourth order
+========================================================
+```{r, echo=F}
+m4 <- map(
+  alist(
+  height ~ dnorm( mu , sigma ) ,
+  mu <- a + b1*weight + b2*I(weight^2) + b3*I(weight^3) + b4*I(weight^4),# + b5*I(weight^5), #+ b6*I(weight^6),
+  a ~ dnorm( 156 , prior_sd ) ,
+  b1 <- dnorm( prior_b , prior_sd ) ,
+  b2 <- dnorm( prior_b , prior_sd ) ,
+  b3 <- dnorm( prior_b , prior_sd ) ,
+  b4 <- dnorm( prior_b , prior_sd ) ,
+  sigma ~ dunif( 0 , prior_sd )
+  ),
+  data=k1
+)
+m4
+```
+
+
+Fitted models
+========================================================
+```{r, echo=F}
+require(polynom)
+plot(k$weight, k$height, xlab='weight', ylab='height')
+abline( a=coef(m1)["a"] , b=coef(m1)["b1"], lwd=2)
+#plot( curve (coef(m1)["a"]  + weight* coef(m1)["b1"] + (weight^2)*weight*coef(m1)["b2"] ) )
+p2 <- polynomial(c(coef(m2)["a"], coef(m2)["b1"], coef(m2)["b2"] ))
+lines(p2, col='blue', lwd=2)
+
+p3 <- polynomial(c(coef(m3)["a"], coef(m3)["b1"], coef(m3)["b2"], coef(m3)["b3"] ))
+lines(p3, col='green', lwd=2)
+
+p4 <- polynomial(c(coef(m4)["a"], coef(m4)["b1"], coef(m4)["b2"], coef(m4)["b3"], coef(m4)["b4"] ))
+lines(p4, col='red', lwd=2)
+```
+
+compare models with WAIC
+========================================================
+```{r}
+compare(m1, m2, m3, WAIC=T)
+
+```
+
+
+
+
+
