@@ -1,28 +1,132 @@
-Untitled
+Interactions
 ========================================================
-author: 
-date: 
+author: Simone Mueller
+date: 2018-18-04
 autosize: true
 
-First Slide
+Motivational example
 ========================================================
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+A manatee struck by a keel is less likely to live than another grazed by a propeller. 
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+The kind of damage you see is conditional on survival.
 
-Slide With Code
+Why do we need interactions?
 ========================================================
 
-```{r}
-summary(cars)
-```
+>>It is neccessary when the importance of one predictor depends upon another predictor. 
 
-Slide With Plot
+Example of an interaction
+========================================================
+left:40%
+![Fig1](Fig1.png)
+***
+It's **not** a good idea to split the data in this way. 
+
+Adding a dummy variable doesn't work
+========================================================
+left:40%
+![Fig2](Fig2.png)
+***
+It can’t do anything to the **slope** of the line. 
+
+Adding a linear interaction does work
+========================================================
+![Fig3](Fig3.png)
+
+![Fig4](Fig4.png)
+***
+The linear model is built by replacing the parameter $\mu_{i}$ in the top line.
+
+
+The new symbol $\gamma_{i}$ is just a placeholder for the linear function that defines the slope between GDP and ruggedness. 
+
+Adding a linear interaction does work
 ========================================================
 
-```{r, echo=FALSE}
-plot(cars)
-```
+![Fig5](Fig5.png)
+ 
+Plotting the interaction
+========================================================
+![Fig6](Fig6.png)
+
+Interpreting an interaction estimate
+========================================================
+>> -  A "main effect" coefficient in an interaction model does not mean the same thing as a coefficient of the same name in a model without an interaction.
+
+>> - Tables of numbers don't make it easy to fully incorporate uncertainty in our thinking, since covariance among parameters isn't usually shown.
+
+Parameters change meaning
+========================================================
+meaning **without** interaction
+- each coefficient says how much the average outcome, $\mu$, changes when the predictor changes by one unit. 
+
+meaning **with** interaction
+- now the change in $\mu_{i}$ that results from a unit change in $R_{i}$ is given by $\gamma_{i}$. And since $\gamma_{i}$ is a function of three things - $\beta_{R}$,$\beta_{AR}$, and $A_{i}$ - we have to know all three in order to know the influence of $R_{i}$ on the outcome. 
+
+Incorporating uncertainty
+========================================================
+left:40%
+![Fig7](Fig7.png)
+***
+The distribution of their difference is not the same as the visual overlap of their marginal distributions.
+
+Symmetry of the linear interaction
+========================================================
+
+>>- How much does the influence of ruggedness (on GDP) depend upon whether the nation is in Africa? 
+
+>>- How much does the influence of being in Africa (on GDP) depend upon ruggedness? 
+
+Symmetry of the linear interaction
+========================================================
+<center>
+![Fig8](Fig8.png)
+</center>
+
+
+Africa depends upon ruggedness
+========================================================
+![Fig9](Fig9.png)
+
+Continuous interaction
+========================================================
+- Data:
+
+The data are sizes of blooms from beds of tulpis grown in greenhouses, under different soil and light conditions. 
+
+The blooms variable will be our outcome – what we wish to predict. 
+
+The water and shade variables will be our predictor variables. 
+
+Water indicates one of three ordered levels of soil moisture, from low (1) to high (3). 
+
+Shade indicates one of three ordered levels of light exposure, from high (1) to low (3). 
+
+Centering?
+========================================================
+- benefits of centering:
+
+>>(1) it’s easier to lean on the coefficients alone in understanding the model
+
+>>(2) can help you to achieve a faster and more reliable set of estimates
+
+***
+- disadvantages of uncenterd-models
+
+>>(1) error messages as a result of poor starting values
+
+>>(2) neither of the predictor variables ever takes the value zero within the data intercept estimates are very hard to interpret
+
+Results of the centerd-models
+========================================================
+![Fig10](Fig10.png)
+
+Plotting implied predictions
+========================================================
+<center>
+![Fig11](Fig11.png)
+</center>
+
+Thank you very much!
+========================================================
