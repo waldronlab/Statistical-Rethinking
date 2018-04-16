@@ -1,7 +1,7 @@
 ---
-title: "untitled"
-author: "unknown"
-date: "March 21, 2018"
+title: "Interactions"
+author: "Simone Müller"
+date: "April 18, 2018"
 output:
   html_document:
     fig_height: 7
@@ -23,3 +23,252 @@ library(readr)
 ```
 
 ## Pratice
+
+### 7M1. 
+Tulpis don't grow at all when temperature is hot. Bloom-size doesn't shrink in a linear way. This together implies a non-linear model. 
+This leads to the assumption that there is an interaction between water, shade and temperature.
+
+### 7M2. 
+To get a regression equation which makes the bloom size zero whenever the temperature is hot would only include terms interacted with an notHOt variable. The notHot variable gets the value of zero when it is not notHot which means it is hot. This leads to a bloom size of zero. 
+
+### 7M3. 
+As there aren't any wolves at all there isn't any food for the raven. 
+So this could be a reason for relationship which is not entirely linear. 
+In case we can gurantee that there are wolves, the relationship could be a linear one. 
+
+### 7H1. 
+
+```{r}
+library(rethinking)
+data(tulips)
+d <- tulips
+str(d)
+
+# center variables
+d$water.centered <- d$water - mean(d$water)
+d$shade.centered <- d$shade - mean(d$shade)
+d$bed.b <- ifelse(d$bed == "b", 1, 0)
+d$bed.c <- ifelse(d$bed == "c", 1, 0)
+
+# including bed variable as a predictor in the interaction model - just as a main effect 
+
+m7H1 <- map(
+  alist(
+    blooms ~ dnorm( mu , sigma ) ,
+    mu <- a + bW*water.centered + bS*shade.centered + bWS*water*shade + bBb*bed.b + bBc*bed.c,
+    c(a, bW, bS, bWS, bBb, bBc) ~ dnorm( 0, 100 ),
+    sigma ~ dunif( 0 , 100 )
+  ),
+  data=d,
+  start=list(a=mean(d$blooms), bW=0, bS=0, bWS=0, bBb=0, bBc=0, sigma=sd(d$blooms)), 
+  control=list(maxit=1000))
+```
+
+### 7H2. 
+
+```{r}
+m7H2 <- map(
+    alist(
+      blooms ~ dnorm( mu , sigma ) ,
+      mu <- a + bW*water.centered + bS*shade.centered + bWS*water*shade,
+      a ~ dnorm(130, 100),
+      c(bW, bS, bWS) ~ dnorm( 0, 100 ),
+      sigma ~ dunif( 0 , 100 )
+    ),
+    data=d,
+    start=list(a=mean(d$blooms), bW=0, bS=0, bWS=0, sigma=sd(d$blooms)), 
+    control=list(maxit=1000)
+  )
+
+compare(m7H1, m7H2)
+posterior.samples <- extract.samples(m7H1)
+hist(posterior.samples$bBb)
+hist(posterior.samples$bBc)
+hist(posterior.samples$a)
+```
+
+
+### 7H3.
+```{r}
+data(rugged)
+  d <- rugged
+  d <- d[complete.cases(d$rgdppc_2000),]
+  d$log_gdp <- log(d$rgdppc_2000)
+  d$rugged.centered <- d$rugged - mean(d$rugged)
+  
+  # a.
+  
+  ## fit model with all data
+  m.7H3.all <- map(
+    alist(
+      log_gdp ~ dnorm( mu, sigma ),
+      mu <- a + bR*rugged + bCont*cont_africa + bRCont*rugged*cont_africa,
+      a ~ dnorm(8.5, 5),
+      c(bR, bCont, bRCont) ~ dnorm(0, 10),
+      sigma ~ dunif(0, 10)
+    ), data=d
+  )
+  
+  ## fit model without the Seychelles
+  m.7H3.except.seychelles <- map(
+    alist(
+      log_gdp ~ dnorm( mu, sigma ),
+      mu <- a + bR*rugged + bCont*cont_africa + bRCont*rugged*cont_africa,
+      a ~ dnorm(8.5, 5),
+      c(bR, bCont, bRCont) ~ dnorm(0, 10),
+      sigma ~ dunif(0, 10)
+    ), data=d[(d$country != "Seychelles"),]
+  )
+  
+  ## create triptych plot to compare whether the effect of ruggedness on log-GDP still does depend on continent
+  plotTriptych <- function(model) {
+    par(mfrow=c(1,2))
+    rugged.seq <- 0:8
+    
+    # loop over values of water.c and plot predictions
+    for ( is.africa in 0:1 ) {
+      dt <- d[d$cont_africa==is.africa,]
+      plot( log_gdp ~ rugged , data=dt , col=rangi2 ,
+            main=paste("cont_africa =", is.africa) , xlim=c(0, 8) , ylim=c(5.5,10) ,
+            xlab="rugged" )
+      mu <- link( model , data=data.frame(cont_africa=is.africa, rugged=rugged.seq) )
+      mu.mean <- apply( mu , 2 , mean )
+      mu.PI <- apply( mu , 2 , PI , prob=0.97 )
+      lines( rugged.seq , mu.mean )
+      lines( rugged.seq , mu.PI[1,] , lty=2 )
+      lines( rugged.seq , mu.PI[2,] , lty=2 )
+    }
+  }
+
+triptych1 <- plotTriptych(model = m.7H3.all)
+triptych2 <- plotTriptych(model = m.7H3.except.seychelles)
+
+  
+## compute MAP values for the interaction coefficient at cont_africa=1 for each of the models
+  coef.m.7H3.all <- coef(m.7H3.all)
+  coef.m.7H3.except.seychelles <- coef(m.7H3.except.seychelles)
+  
+  coef.m.7H3.all["bR"] + coef.m.7H3.all["bRCont"]*1
+  coef.m.7H3.except.seychelles["bR"]+ coef.m.7H3.except.seychelles["bRCont"]*1
+
+### results
+# a.
+
+# It doesn't matter if the Seychelles are included or not. In both cases ruggedness and log-GDP show a negative relationship when cont_africa=0. When the Seychelles are not included and cont_africa=1 the relationship between ruggedness and log-GDP remains positive. The slope decreases which means that the Seychelles had a significant role in the first analysis. 
+
+# b.
+
+# Covered in a.
+
+# c.
+d.except.seychelles <- d[(d$country != "Seychelles"),]
+
+m.7H3.c.1 <- map(
+  alist(
+    log_gdp ~ dnorm( mu, sigma ),
+    mu <- a + bR*rugged.centered,
+    a ~ dnorm(8.5, 5),
+    bR ~ dnorm(0, 100),
+    sigma ~ dunif(0, 10)
+  ), data=d.except.seychelles
+)
+
+m.7H3.c.2 <- map(
+  alist(
+    log_gdp ~ dnorm( mu, sigma ),
+    mu <- a + bR*rugged.centered + bCont*cont_africa,
+    a ~ dnorm(8.5, 5),
+    c(bR, bCont) ~ dnorm(0, 100),
+    sigma ~ dunif(0, 10)
+  ), data=d.except.seychelles
+)
+
+m.7H3.c.3 <- map(
+  alist(
+    log_gdp ~ dnorm( mu, sigma ),
+    mu <- a + bR*rugged.centered + bCont*cont_africa + bRCont*rugged.centered*cont_africa,
+    a ~ dnorm(8.5, 5),
+    c(bR, bCont, bRCont) ~ dnorm(0, 100),
+    sigma ~ dunif(0, 10)
+  ), data=d.except.seychelles
+)
+
+compare(m.7H3.c.1, m.7H3.c.2, m.7H3.c.3)
+
+## generate WAIC-averaged predictions
+rugged.seq <- seq(from = 0, to = 8, by = .1)
+rugged.seq.centered <- rugged.seq - mean(rugged.seq)
+prediction.data = data.frame(rugged.centered = rugged.seq.centered, cont_africa = 1)
+mu.ensemble <- ensemble(m.7H3.c.1, m.7H3.c.2, m.7H3.c.3, data = prediction.data)
+mu.mean <- apply(X = mu.ensemble$link, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu.ensemble$link, MARGIN = 2, FUN = PI)
+data.plot <- d[(d$cont_africa == 1),]
+plot(log_gdp ~ rugged.centered, data=data.plot, pch=ifelse(data.plot$country == "Seychelles", 16, 1), col="slateblue")
+lines( rugged.seq.centered, mu.mean )
+lines( rugged.seq.centered, mu.PI[1,], lty=2 )
+lines( rugged.seq.centered, mu.PI[2,], lty=2 )
+```
+
+### 7H4.
+```{r}
+  data(nettle)
+  d <- nettle
+  d$lang.per.cap <- d$num.lang / d$k.pop
+  d$log.lang.per.cap <- log(d$lang.per.cap)
+  d$log.area <- log(d$area)
+  d$mean.growing.season.c <- d$mean.growing.season - mean(d$mean.growing.season)
+  d$sd.growing.season.c <- d$sd.growing.season - mean(d$sd.growing.season)
+  
+  m <- map(
+    alist(
+      log.lang.per.cap ~ dnorm( mu, sigma ),
+      mu <- a + bMGS*mean.growing.season.c + bSGS*sd.growing.season.c + bMGS.SGS*mean.growing.season.c*sd.growing.season.c + bA*log.area,
+      c(a, bMGS, bSGS, bMGS.SGS, bA) ~ dnorm( 0, 50 ),
+      sigma ~ dunif(0, 25)
+    ), data = d
+  )
+
+# a.
+  coef.m <- coef(m)
+  coef.m["bMGS"] + coef.m["bA"]*1
+  
+# Positive realtionship between language diversity (log) and mean growing season because there is a positive coefficient. 
+
+
+# b.
+  coef.m["bSGS"] + coef.m["bA"]*1
+
+# Negative relationship between language diversity (log) and standard deviation of growing season because there is a negative coefficient. 
+
+# c.
+
+ m7H4 <- map(
+    alist(
+      log.lang.per.cap ~ dnorm( mu, sigma ),
+      mu <- a + bMGS*mean.growing.season.c + bSGS*sd.growing.season.c + bMGS.SGS*mean.growing.season.c*sd.growing.season.c,
+      c(a, bMGS, bSGS, bMGS.SGS, bA) ~ dnorm( 0, 50 ),
+      sigma ~ dunif(0, 25)
+    ), data = d
+  )
+  
+
+  plotTriptych <- function(model) {
+    par(mfrow=c(1,3))
+    mean.growing.season.seq <- -7:5
+    
+  for ( w in -3:5 ) {
+    dt <- d[d$sd.growing.season.c==w,]
+    plot( log.lang.per.cap ~ mean.growing.season.c, data=dt , col=rangi2 ,
+          main=paste("sd.growing.season.c =", w) , xlim=c(-1, 1) , ylim=c(-10,2) ,
+          xlab="mean.growing.season.c" )
+    mu <- link( model , data=data.frame(sd.growing.season.c=w, mean.growing.season.c=mean.growing.season.seq) )
+    mu.mean <- apply( mu , 2 , mean )
+    mu.PI <- apply( mu , 2 , PI , prob=0.97 )
+    lines( mean.growing.season.seq , mu.mean )
+    lines( mean.growing.season.seq , mu.PI[1,] , lty=2 )
+    lines( mean.growing.season.seq , mu.PI[2,] , lty=2 )
+  }
+  }
+
+triptych3 <- plotTriptych(model = m7H4) 
+```
