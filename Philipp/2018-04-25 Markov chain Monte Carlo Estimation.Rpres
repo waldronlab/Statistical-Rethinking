@@ -1,0 +1,56 @@
+<style>
+body {
+    overflow: scroll;
+}
+.small-code pre code {
+  font-size: 1em;
+}
+</style>
+
+
+Markov Chain Monte Carlo Estimation
+========================================================
+author: Philipp Grafendorfer
+date: 2018-04-25
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(DiagrammeR)
+```
+
+
+
+Overview
+========================================================
+- Motivation and Introduction
+- Overview of different techniques
+- Hamilton Monte Carlo
+- Bad sampling
+
+A selection of exercises will be presented within the slides.
+
+
+Motivation and Introduction
+========================================================
+
+
+
+
+Structural Overview
+========================================================
+
+<img src="img/RPlot01.png"</img>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

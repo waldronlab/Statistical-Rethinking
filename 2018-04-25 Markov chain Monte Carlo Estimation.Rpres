@@ -1,28 +1,147 @@
-Untitled
+<style>
+body {
+    overflow: scroll;
+}
+.small-code pre code {
+  font-size: 1em;
+}
+</style>
+
+
+Markov Chain Monte Carlo Estimation
 ========================================================
-author: 
-date: 
-autosize: true
+author: Philipp Grafendorfer
+date: 2018-04-25
 
-First Slide
-========================================================
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+Matsui, E. & Peng, R. D. *The Art of Data Science*. (Leanpub, 2015).
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
-Slide With Code
-========================================================
-
-```{r}
-summary(cars)
-```
-
-Slide With Plot
+Principles of Interpretation
 ========================================================
 
-```{r, echo=FALSE}
-plot(cars)
-```
+1. Revisit your original question
+2. Check the "magic" three: directionality, magnitude and uncertainty.
+3. Develop an overall interpretation out of your analysis and other information about the matter.
+4. Take actions!
+
+Epicycles of Analysis also apply to interpretation.
+
+Epicycles revisited
+========================================================
+
+<img src="epicycles.jpg"</img>
+
+
+Revisit your question
+========================================================
+
+It is daunting not to bias from your original question. This might easily happen during EDA and formal modelling.
+Otherwise you would get answers to different questions and that is not goal oriented.
+
+**Is your question causal or inferential?**
+
+The answer to this questions determines the whole setup: collect data and do statistics or perform a clinical trial.
+
+
+Causal or inferential?
+========================================================
+
+- "Among adults in the US, do those who drink 1 more 12-ounce serving of non-diet soda per day have a higher BMI, on average?"
+
+- "What effect does drinking an additional 12-ounce serving of non-diet soda per day have on the BMI?""
+
+Which question is inferential and thus "our" question for this case?
+
+
+How to discover bias in your sample?
+========================================================
+
+Assume that your result is wrong and refine your whole analytic process by finding the error.
+
+Maybe your sample is not a random sample.
+- What do other results yield?
+- How has the study been advertised? For instance in a fitess magazine?
+- Did you oversample from a specific group?
+
+Targeting special groups might result in a biased dataset.
+
+Imagine a group with type 2 diabetes.
+They have high BMI but don't consume soda at all.
+
+
+Data & Directionality
+========================================================
+
+<img src="linreg.png"</img>
+
+The directionality is positive (does this match your expectations?)
+Refining the...
+
+
+Magnitude
+========================================================
+
+Carefully design your metrics according to the issue. What was the question again?
+
+If your regression gives you a slope estimator of 0.28kg/m^2 increase in BMI for each ounce of non-diet soda, you must convert it properly (in that case it would be 0.28*12kg/m^2 = 3.36kg/m2).
+
+Another way would be to adjust the soda- metric to 12-ounces. So your result for the slope estimator would be 3.36 at first.
+
+
+Uncertainty
+========================================================
+
+How do you know whether your result isn't just random noise?
+
+- Random samples are - in general - no surrogates for the overall population.
+- *The probability that your sample reflects the answer for the overall population varies depending on how close (or far) your sample result is to the true result for the overall population. But you cannot calculate that probability.*
+- Tools: **p- Value, Confidence Intervall**
+
+Problems with p- Values
+========================================================
+
+<img src="using-bayes-factors-in-biobehavioral-research-3-638.jpg"</img>
+
+Is a confidence intervall better for estimating uncertainty?
+
+Interesting essay on p- values:
+https://aeon.co/essays/it-s-time-for-science-to-abandon-the-term-statistically-significant
+
+*The problem is that the p-value gives the right answer to the wrong question. What we really want to know is not the probability of the observations given a hypothesis about the existence of a real effect, but rather the probability that there is a real effect - that the hypothesis is true - given the observations. And that is a problem of induction.* - David Colquhoun
+
+After reading that essay you might force the topic for next semester: **Bayesian Statistics** and induction.
+
+
+Develop an overall interpretation
+========================================================
+
+by
+- considering both the totality of your analysis and information external to your analysis.
+- evaluating the directionality, magnitude and uncertainty of your findings.
+- developing a secondary model (e.g. by removing outliers) and see how robust your findings are.
+- adding a new variable to your model (socioeconomic status?)
+- compare your primary to your secondary model
+
+
+Are there total mediations?
+Do you have information about typical and plausible volumes of soda consumption among adults in the US?
+
+
+Implications
+========================================================
+
+- Perform a clinical trial to find potential causality.
+- Subsequent actions often depend on the mission of the organization that requested the analysis.
+
+
+
+
+
+
+
+
+
+
+
+
+
