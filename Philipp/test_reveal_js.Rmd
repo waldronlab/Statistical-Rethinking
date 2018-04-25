@@ -1,20 +1,11 @@
 ---
-title: "An Introduction to Markov Monte Carlo Estimation"
+title: "Monte Carlo Estimation"
 author: "Philipp Grafendorfer"
 date: "25th of April 2018"
-output: 
-  ioslides_presentation:
-    fullscreen: true
-    widescreen: true
-    df_print: paged
-    css: style.css
+output: revealjs::revealjs_presentation
+  reveal_plugins: ["notes"]
+  self_contained: false
 ---
-
-<style>
-p.caption {
-  font-size: 0.6em;
-}
-</style>
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
@@ -43,16 +34,10 @@ dd.trim <- dd[ , c("log_gdp", "rugged", "cont_africa")]
 - Hamilton Monte Carlo
 - Exercises and applications
 - Bad sampling and how to tam a wild chain
-- Non identifiable parameters
 - Compare different models
 
-<div class="notes">
+Note:
 This is my *note*.
-
-- It can contain markdown
-- like this list
-
-</div>
 
 
 ## Motivation and Introduction
@@ -86,13 +71,11 @@ img <- readPNG("img/Ulam_5.png")
 img <- readPNG("img/metropolis_0.png")
  grid.raster(img)
 ```
-
 </div>
 
 ----
 
 ### Edward Teller (1908-2003)
-
 
 <div class="columns-2">
 
@@ -117,35 +100,12 @@ img <- readPNG("img/king_markov.png")
 
 ----
 
-```{r fig.height=6,echo=FALSE, fig.align='center'}
-img <- readPNG("img/king_markov_plot.png")
- grid.raster(img)
-```
-
-----
-
-### Analogy
-
-
-- The “islands” in our objective are parameter values, and they need not be discrete,
-but can instead take on a continuous range of values as usual.
-- The “population sizes” in our objective are the posterior probabilities at each parameter
-value.
-- The “weeks” in our objective are samples taken from the joint posterior of the parameters
-in the model.
-
-----
-
 ### MCMC 
 
-
-> - Stochastic process
+> - Sampling of (in general) non- normal posteriors
 > - can be very efficient
 > - output is a sample of posteriors
-> - no maximization
 > - a byproduct of MCMC is a model fit but we are not (primarily) interested in that
-> - sampling takes longer than other techniques
-> - escaping the akwardness of assuming multivariate normality
 
 ----
 
@@ -155,14 +115,12 @@ in the model.
 grViz("
       digraph boxes_and_circles {
       
-      node [shape = circle
-            penwidth = 4.0
-            fontsize = 23.0]
+      node [shape = circle]
       MCMC; Metropolis; 'Metropolis Hastings'; 'Hamilton MC'; 'Gibbs Sampling'; BUGS; JAGS
 
       node [shape = box
             fontname = Helvetica
-            ]
+            penwidth = 2.0]
       'symmetric proposal'; 'asymmetric proposal'; 'high cost, high efficiency'; 'continous parameters';
         'full sweep'; 'conjugate pairs/priors'; 'adaptive proposal'
       
@@ -188,17 +146,16 @@ grViz("
 ## Markov Chain Monte Carlo
 
 ```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
-img <- readPNG("img/reason_for_mcmc.png")
+img <- readPNG("img/detail_view_mcmc_kippling.png")
  grid.raster(img)
 ```
 
 ----
 
 ```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
-img <- readPNG("img/detail_view_mcmc_kippling.png")
+img <- readPNG("img/reason_for_mcmc.png")
  grid.raster(img)
 ```
-
 
 ## The Metropolis Algorithm
 
@@ -308,7 +265,7 @@ legend(1.2, 6, legend=c("Uniform", "Exponential"), col=c("red", "blue"), lty=1:1
 
 ```{r fig.cap="Posterior with Uniform Prior for Sigma", fig.align='center', fig.height=5, fig.width=10}
 post.unif <- extract.samples(m8.1.unif)
-pairs.panels(as.data.frame(post.unif), pch=21)
+pairs.panels(as.data.frame(post.unif))
 ```
 
 ---- 
@@ -317,7 +274,7 @@ pairs.panels(as.data.frame(post.unif), pch=21)
 
 ```{r fig.cap="Posterior with Exponential Prior for Sigma", fig.align='center', fig.height=5, fig.width=10}
 post.exp <- extract.samples(m8.1.exp)
-pairs.panels(as.data.frame(post.exp), pch=21)
+pairs.panels(as.data.frame(post.exp))
 ```
 
 ----
@@ -332,7 +289,7 @@ precis(m8.1.exp)
 - standard parameter for warmup: 1000
 - **n_eff** gives an estimated number of effective samples from the posterior respectively
 - **Rhat** is the *Gelman Rubicon Convergence Diagnostic* for the markov chain (should be close to 1)
-- The intervall is a highest posterior density intervall (HPDI)
+- The intervall is a Maximum A Posteriori (MAP) intervall
 
 ----
 
@@ -375,11 +332,11 @@ m8.2.exp.1 <- readRDS("model/m8.2.exp.1.rds")
 m8.2.exp.point.1 <- readRDS("model/m8.2.exp.point.1.rds")
 ```
 
-```{r fig.align='center', fig.width=8, fig.cap='Decreasing Scaling Parameter for Cauchy Distribution'}
+```{r fig.align='center', fig.width=10, fig.cap='Decreasing Scaling Parameter for Cauchy Distribution'}
 curve(dcauchy(x, 0, 10), from = 0, to = 4, xlab = "sigma", ylab = "Prior Density", ylim = c(0, 1))
 curve(dcauchy(x, 0, 1), from = 0, to = 4, add = TRUE, col = "blue")
 curve(dcauchy(x, 0, 0.1), from = 0, to = 4, add = TRUE, col = "red")
-legend(2, 0.8, legend=c("10", "1", "0.1"), col=c("black", "blue", "red"), lty=1:1, cex=0.8, title = "Prior Cauchy Scale")
+legend(6, 0.8, legend=c("10", "1", "0.1"), col=c("black", "blue", "red"), lty=1:1, cex=0.8, title = "Prior Distribution")
 ```
 
 ----
@@ -390,7 +347,7 @@ legend(2, 0.8, legend=c("10", "1", "0.1"), col=c("black", "blue", "red"), lty=1:
 curve(dexp(x, 10), from = 0, to = 10, xlab = "sigma", ylab = "Prior Density", ylim = c(0, 1))
 curve(dexp(x, 1), from = 0, to = 10, add = TRUE, col = "blue")
 curve(dexp(x, 0.1), from = 0, to = 10, add = TRUE, col = "red")
-legend(6, 0.8, legend=c("10", "1", "0.1"), col=c("black", "blue", "red"), lty=1:1, cex=0.8, title = "Prior Exponential Scale")
+legend(6, 0.8, legend=c("10", "1", "0.1"), col=c("black", "blue", "red"), lty=1:1, cex=0.8, title = "Prior Distribution")
 ```
 
 ----
@@ -445,37 +402,27 @@ plot(m8.2)
 precis(m8.2)
 ```
 
+Bringing in weak priors helps a lot.
+
+```{r fig.height=4, fig.width=10}
+m8.3 <- readRDS("model/m8.3.rds")
+plot(m8.3)
+```
+
 ----
 
 ### Weak Priors
+
+Prior introduction
 
 **alpha ~ dnorm( 1 , 10 ) ,**
 **sigma ~ dcauchy( 0 , 1 )**
 
 ```{r}
-m8.3 <- readRDS("model/m8.3.rds")
 precis(m8.3)
 ```
 
-```{r fig.height=3}
-plot(m8.3)
-```
-
-## Non identifiable parameters
-
-```{r fig.height=4,echo=FALSE}
-img <- readPNG("img/non_identifiable_parameters.png")
- grid.raster(img)
-```
-
-We can not simultaneously estimate a1 and a2 but only the sum.
-Weak priors will help here as well.
-
-## Exercise 8H2 Compare different models
-
-*Recall the divorce rate example from Chapter 5. Repeat that analysis, using map2stan this*
-*time, fitting models m5.1, m5.2, and m5.3. Use compare to compare the models on the basis of*
-*WAIC. Explain the results.*
+## Comparing different models Exercise 8H2
 
 ```{r}
 data(WaffleDivorce)
@@ -494,64 +441,16 @@ m5.2_stan <- readRDS("model/m5.2_stan.rds")
 m5.3_stan <- readRDS("model/m5.3_stan.rds")
 ```
 
-### 1 IV
-
-    Divorce ~ dnorm( mu , sigma ) ,
-    mu <- a + bA * MedianAgeMarriage_s ,
-    a ~ dnorm( 10 , 10 ) ,
-    bA ~ dnorm( 0 , 1 ) ,
-    sigma ~ dunif( 0 , 10 )
-
-```{r}
-precis(m5.1_stan)
-```
-
-----
-
-### 1 IV
-
-    Divorce ~ dnorm( mu , sigma ) ,
-    mu <- a + bR * Marriage_s ,
-    a ~ dnorm( 10 , 10 ) ,
-    bR ~ dnorm( 0 , 1 ) ,
-    sigma ~ dunif( 0 , 10 )
-
-```{r}
-precis(m5.2_stan)
-```
-
-----
-
-### 2 IV
-
-    Divorce ~ dnorm( mu , sigma ) ,
-    mu <- a + bR*Marriage_s + bA*MedianAgeMarriage_s ,
-    a ~ dnorm( 10 , 10 ) ,
-    bR ~ dnorm( 0 , 1 ) ,
-    bA ~ dnorm( 0 , 1 ) ,
-    sigma ~ dunif( 0 , 10 )
-
-```{r}
-precis(m5.3_stan)
-```
-
-----
-
-### Comparison
-
 ```{r}
 # compare the resulting models
-compare(m5.1_stan, m5.2_stan, m5.3_stan)
+compare(m5.1_stan,m5.2_stan,m5.3_stan)
 ```
 
 
-## Folk theorem of statistical computing
+## Thank you for your attention.
 
-*"When you are having trouble fitting a model, it often indicates a bad model."*
 
-<center>
-**Thank you for your attention**
-</center>
+
 
 
 
