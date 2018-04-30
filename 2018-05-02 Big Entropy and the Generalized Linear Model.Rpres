@@ -1,28 +1,391 @@
-Untitled
+Big Entropy and the Generalized Linear Model
 ========================================================
-author: 
-date: 
+author: Christina Kastner
+date: 2-5-2018
 autosize: true
 
-First Slide
+Table of contents
 ========================================================
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+- Introduction
+- Maximum entropy
+  - Gaussian
+  - Binomial
+- Generalized linear models
+  - Meet the family
+      - Exponential Distribution
+      - Gamma Distribution
+      - Poisson Distribution
+  - Link Functions
+      - Logit Link
+      - Logistic/Inverse-Logit
+- Summary
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+Introduction
+========================================================
 
-Slide With Code
+People share the experience of fighting with tangled electrical cords. 
+
+Why tend cables towards tying themselves in knots? 
+Descritive Level: Entropy
+
+<div style="text-align:center;"><img src="figures/kabel.jpg"; width=350 height=500 pos=>
+
+Introduction - Entropy
+========================================================
+
+Entropy helps solving problems with choosing distributions
+
+Conventional choices are not always the best choices 
+(eg. wide Gaussian priors, Gaussian likelihood of linear regression)
+
+Reasons for betting on distributions with the biggest entropy:
+
+- widest and least informative distribution
+- nature tends to produce empirical distributions that have high entropy
+- it tends to work
+
+Introduction - Generalized Linear Model
+========================================================
+
+- much like linear regressions
+- model that replaces a parameter of a likelihood function with a linear model
+- maximum entropy helps to choose likelihood functions
+
+Maximum Entropy
+========================================================
+
+We seek measure of uncertainty that satisfies: 
+- the measure should be continuous
+- it should increase as the number of possible events increases
+- it should be additive
+
+## Information Entropy: 
+<span style="color:red">
+$$\Huge H(p) = -\sum_ip_i\log{(p_i)}$$
+
+Maximum Entropy
+========================================================
+
+<span style="color:green">
+The distribution that can happen the most ways is also the distribution with the biggest information entropy.
+The distribution with the biggest entropy
+is the most conservative distribution that obeys its constraints.
+
+<div style="text-align:center;"><img src="figures/BigEntropy.png"; width=550 height=550 pos=>
+
+Maximum Entropy
 ========================================================
 
 ```{r}
-summary(cars)
+p <- list() 
+p$A <- c(0,0,10,0,0)
+p$B <- c(0,1,8,1,0)
+p$C <- c(0,2,6,2,0)
+p$D <- c(1,2,4,2,1)
+p$E <- c(2,2,2,2,2)
+
+#Normalize each such that it is a probability distribution
+
+p_norm <- lapply( p , function(q) q/sum(q))
+
+# Compute information entropy
+
+H <- sapply( p_norm , function(q) -sum(ifelse(q==0,0,q*log(q)))) 
+H
 ```
 
-Slide With Plot
+
+Maximum Entropy
+========================================================
+<div style="text-align:center;"><img src="figures/logways.png";width=300 height=300 pos=>>
+```{r}
+# log ways per pebble
+
+ways <- c(1,90,1260,37800,113400)
+logwayspp <- log(ways)/10
+logwayspp
+```
+
+Maximum Entropy
 ========================================================
 
-```{r, echo=FALSE}
-plot(cars)
+
+- Information entropy & log(ways) per pebble contain the same information
+-	Information Entropy: Ways of counting how many unique arrangements correspond to a distribution
+-	Most plausible distribution: distribution that happen the greatest number of ways -> Maximum Entropy Distribution
+-	The large majority of unique arrangements produce either the maximum entropy distribution or a distribution similar to it
+
+<span style="color:red">
+Bet on maximum entropy: "center of gravity for the highly pausible distribtions"
+
+<div style="text-align:center;"><img src="figures/logways.png";width=150 height=150>
+
+Maximum Entropy
+========================================================
+
+Derivation Maximum Entropy (Page 271)
+
+Maximum Entropy with prior information qi:
+
+$$\huge \frac{1}{N}log{Pr(n_1,...,n_m)} = -\sum_ip_i\log{(p_i/q_i)}$$
+
+Maximum Entropy - Gaussian
+========================================================
+## Generalized normal distribution:
+
+<div style="text-align:center;"><img src="figures/GnVtlg.png";width=60 height=60>
+
+We want to compare a regular Gaussian distribtution with variance $\huge\sigma^2$ to several generalized normal with the same variance.
+
+<div style="text-align:center;"><img src="figures/Normalverteilung.png";width=280 height=280>
+
+(Proof that the Gaussian has the largest entropy of any distribution with a given variance Page 274)
+
+Maximum Entropy - Binomial
+========================================================
+## Binomial distribution:
+
+<img src="figures/Binomial.png";width=60 height=60>
+
+## More elementary view:
+
+<img src="figures/BinomialS.png";width=60 height=60>
+
+We want to show that Binomial distribution has the largest entropy of any distribution that satisfies these constraints:
+
+- only two unordered events
+- constant expect value
+
+Maximum Entropy - Binomial
+========================================================
+## Example 1
+- We have a bag with unknown number of blue and white marbles and draw 2 marbles with replacement
+- 4 Events: ww, wb, bw, bb
+- Expected value: 1 blue marble
+- A: Binomial distribution with n = 2, p = 0.5
+<div style="text-align:center;";>
+<img src="figures/Tab_B.png";width=110 height=110>
+<div style="text-align:center;";>
+<img src="figures/GraphB.png";width=280 height=280>
+
+Maximum Entropy - Binomial
+========================================================
+## Example 1
+```{r}
+# build list of the candidate distributions
+p <- list()
+p[[1]] <- c(1/4,1/4,1/4,1/4)
+p[[2]] <- c(2/6,1/6,1/6,2/6)
+p[[3]] <- c(1/6,2/6,2/6,1/6)
+p[[4]] <- c(1/8,4/8,2/8,1/8)
+# compute expected value of each
+sapply(p, function(p) sum(p*c(0,1,1,2)))
+
+# compute entropy of each distribution
+sapply(p, function(p) -sum( p*log(p)))
 ```
+
+Maximum Entropy - Binomial
+========================================================
+## Example 2
+- We have a bag with unknown number of blue and white marbles and draw 2 marbles with replacement
+- 4 Events: ww, wb, bw, bb
+- Expected value: 1.4 blue marble
+- A: Binomial distribution with n = 2, p = 0.7
+
+```{r}
+p <- 0.7 
+A <- c((1-p)^2 , p*(1-p) , (1-p)*p , p^2)
+A
+# Calculate Entropie
+-sum(A*log(A))
+```
+
+Maximum Entropy - Binomial
+========================================================
+Formula (1): $$\huge 0*\frac{x_1}{\sum_{i=1}^4{x_i}} + 1*\frac{x_2}{\sum_{i=1}^4{x_i}} + 1*\frac{x_3}{\sum_{i=1}^4{x_i}} + 2*\frac{x_4}{\sum_{i=1}^4{x_i}} = 1.4$$
+```{r}
+library(rethinking)
+
+  sim.p <- function(G=1.4) {
+    x123 <- runif(3)
+    # switching the formula (1) to x4 yields:
+    x4 <- ((G)*sum(x123)-x123[2]-x123[3])/(2-G)
+    z <- sum( c(x123,x4) )
+    # Normalize values x1 to x4 to become a probability distribution
+    p <- c( x123 , x4 )/z
+    list( H=-sum( p*log(p) ) , p=p )
+  }
+  
+H <- replicate(1e5, sim.p(1.4))
+# dens(as.numeric(H[1,]),adj=0.1)
+```
+
+Maximum Entropy - Binomial
+========================================================
+<div style="text-align:center;";>
+<img src="figures/Example2.png";width=220 height=220>
+
+```{r}
+entropies <- as.numeric(H[1,])
+distributions <- H[2,]
+max(entropies)# Entropie binomial distribution: 1.221729
+distributions[which.max(entropies)]# binomial d.: 0.09, 0.21, 0.21, 0.49
+```
+
+Maximum Entropy 
+========================================================
+
+- two un-ordered outcomes are possible with expected numbers are assumed to be constant -> binomial distribution
+- Gaussian distribution most conservative distribution for continous outcome and finite variance
+- Chapter 2: Binomial distribution: counting how many paths through garden of forking data were consistent with assumption
+  - Entropy does the same -> Entropy is counting
+- Page 280: It is shown that the binomial distribution is a maximum entropy distribution
+
+Generalized linear models 
+========================================================
+<span style="color:red">
+## Linear model:
+
+<img src="figures/lm.png">
+<span style="color:black">
+- not the best choice if outcome is discrete or bounded
+- for example: drawing marbles
+
+
+## Generalized linear model:
+<span style="color:black">
+- use prior knowledge about outcome
+- use maximum entropy for choice of distribution
+- replace a parameter that descripte the shape of thelikelihood with a linear model
+
+<img src="figures/binGLM.png">
+
+Generalized linear models 
+========================================================
+
+Difference to linear model:
+- different likelihood
+- we have to use a link function
+
+Binomial distribution:
+- shape described by 2 parameters (n und p; np = expected value)
+- n usually known -> attach linear model to p
+- p probability mass
+<div style="text-align:center;";>
+<img src="figures/solid.png";width=275 height=275>
+
+Generalized linear models - Meet the family
+========================================================
+
+- most common distributions used in statistical modeling: exponential family
+- every member has maximum entropy
+
+<div style="text-align:center;";>
+<img src="figures/family.png";width=500 height=500>
+
+Generalized linear models - Exponential Distribution
+========================================================
+<img src="figures/exp.png";>
+- Constrained to be zero or positive
+- Distribution of distance and duration, kinds of measurement that represent displacement from some point of reference either in time or space
+-	If probability of an event is constant in time or across space then the distribution of events tends towards exponential
+- Maximum entropy among all non-negative continuous distributions 
+- Shape descripted by a single parameter
+- Distribution is the core of survival and event history analysis
+
+
+Generalized linear models - Gamma Distribution
+========================================================
+<img src="figures/Gamma.png";>
+- Constrained to be zero or positive
+-	Distribution of distance and duration
+- Peak can be above 0
+- If an event can only happen after two or more exponentially distributed events happen the resulting waiting times will be gamma distributed
+- Maximum entropy among all distributions with the same mean and same average logarithm
+-	Shape descriped by 2 parameter
+- Common in survival and event history analysis as well as some contexts in which a continuous measurement is constrained to be positive
+
+Generalized linear models - Poisson Distribution
+========================================================
+<img src="figures/pois.png";>
+- Count distribution
+- Special case of binomial (n large, p small -> poisson)
+- Used for counts that never get close to any theoretical maximum
+- As special case of binomial: maximum entropy
+- Shape described by one parameter
+
+Generalized linear models - Link Function
+========================================================
+<img src="figures/binGLM.png">
+- Used to build a regression model
+- Tries to avoid: 
+  - negative disgtances
+  - probability masses that exceed 1
+- Most commonly used link functions:
+  - logit link
+  - log link
+
+Generalized linear models - Logit Link
+========================================================
+- Maps a parameter that is defined as probability mass onto a linear model
+- Extreme commom with binomial Glm
+
+<div style="text-align:center;";>
+<img src="figures/logit.png">
+
+<div style="text-align:center;";>
+<img src="figures/logit2.png">
+
+<div style="text-align:center;";>
+<img src="figures/logit3.png">
+
+<div style="text-align:center;";>
+<img src="figures/logit4.png">
+
+Generalized linear models - Logit Link
+========================================================
+<div style="text-align:center;";>
+<img src="figures/logit4.png">
+- Usually called logistic function or inverse-logit
+<div style="text-align:center;";>
+<img src="figures/logodds.png">
+- compression affects the interpretation of parameter estimaes: a unit change in the predictor variable does no longer produce a constant change in the mean of the outcome 
+Generalized linear models - Log Link
+========================================================
+- Maps a paramater which is defined over positive real values
+<div style="text-align:center;";>
+<img src="figures/normalGLM.png">
+<div style="text-align:center;";>
+<img src="figures/sigmaglm.png">
+<div style="text-align:center;";>
+<img src="figures/loglink.png">
+- cannot predict values outside the range of data used to fit the model
+
+Generalized linear models
+========================================================
+## Absolute and relative differences:
+- Parameter estimates doesn`t tell by themselves the importance of a predictor outcome
+- Big beta coefficient may not correspond to a big effect on the outcome
+
+## GLM`s & information criteria:
+- Only compare models with AIC/WIC/WAIC if models use same type of likelihood
+- Maximum entropy helps to make an easy choice of likelihood
+
+## Maximum entropy priors:
+- Maximum entropy helps to choose an outcome distribution
+- When we have background information about a parameter: maximum entropy provides a way to generate a prior that embodies background information while assuming as little else as possible
+
+Summary
+========================================================
+- Maximum entropy provides a successful way to choose likelihood functions
+- Information entropy: measure of the number of way a distribution can arise according to assumtions
+- If we choose the distribution with the biggest information entropy we choose a distribution that obeys the constraints on outcome variables 
+- GLM arise naturally from this approach as extensions of LM
+- When using a GLM we have to choose a link function to bind the linear model to the generalized outcome
+
+<div style="text-align:center;";>
+<span style="color:red">
+Thank you for your attention!
+
