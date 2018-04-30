@@ -1,0 +1,378 @@
+---
+title: "Markov Chain Monte Carlo Exercises"
+author: "Philipp Grafendorfer"
+date: "April 25, 2018"
+output:
+  html_document:
+    fig_height: 7
+    fig_retina: NULL
+    code_folding: "hide"
+fig_width: 10
+---
+
+## `knitr` Options
+
+```{r}
+knitr::opts_chunk$set(fig.align = "center")
+knitr::opts_chunk$set(results = "hold")
+knitr::opts_chunk$set(message = F, warning = F, fig.width = 10)
+```
+
+## `R` Packages
+
+```{r, message=FALSE}
+library(readr)
+```
+
+## Easy Practice
+
+
+### 8E1
+
+1. The proposal distribution must be symmetric
+
+### 8E2
+How does Gibbs Sampling achieve its extra efficiency compared to the Metropolis Algorithm?
+
+One can get a good estimate of the posterior distribution out of Gibbs sampling with many fewer samples than sampling with the metropolis algorithm. We can acquire an equally good image of the posterior in fewer steps. This happens via adaptive proposals in which the parameter values adapt itself dependin on the parameter values at the moment.
+
+However Gibbs sampling becomes very inefficient as soon as the number of parameters grows to a very large number. Apart from that many times we do not want a conjugate prior. 
+
+### 8E3
+
+Hamiltonian Monte Carlo Sampling requires continuous parameters. It cant glide through a discrete parameter.
+
+### 8E4
+
+The effective number of samples n_Eff is provided by stan. The actual number of samples may contain highly autocorrelated samples. So stan tries to estimate the effective number of samples. 
+
+### 8E5
+
+1
+
+### 8E6
+
+bring some screenshots here.
+
+
+## Medium Practice
+
+### 8M1
+
+```{r warning=FALSE}
+library(rethinking)
+data(rugged)
+d <- rugged
+d$log_gdp <- log(d$rgdppc_2000)
+dd <- d[ complete.cases(d$rgdppc_2000) , ]
+dd.trim <- dd[ , c("log_gdp", "rugged", "cont_africa")]
+```
+
+```{r}
+# put a uniform prior on sigma
+m8.1.unif <- map2stan(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa ,
+    a ~ dnorm(0, 100),
+    bR ~ dnorm(0, 10),
+    bA ~ dnorm(0, 10),
+    bAR ~ dnorm(0, 10),
+    sigma ~ dunif(0, 10)
+  ), data=dd.trim )
+```
+
+```{r}
+# put an exponential prior on sigma
+m8.1.exp <- map2stan(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa ,
+    a ~ dnorm(0, 100),
+    bR ~ dnorm(0, 10),
+    bA ~ dnorm(0, 10),
+    bAR ~ dnorm(0, 10),
+    sigma ~ dexp(1)
+  ), data=dd.trim )
+```
+
+```{r}
+# visualize each prior
+curve(dcauchy(x, 0, 2), from = 0, to = 10, xlab = "sigma", ylab = "Density", ylim = c(0, 1))
+curve(dunif(x, 0, 10), from = 0, to = 10, add = TRUE, col = "blue")
+curve(dexp(x, 1), from = 0, to = 10, add = TRUE, col = "red")
+```
+
+```{r message=FALSE, warning=FALSE}
+# plot the posterior for sigma for each model
+sigma_unif <- extract.samples(m8.1.unif,pars="sigma")
+sigma_exp <- extract.samples(m8.1.exp,pars="sigma")
+dens(sigma_unif[[1]], xlab="sigma", xlim=c(0.5,1.5), col="red")
+dens(sigma_exp[[1]], add=TRUE, col="blue")
+```
+
+```{r}
+library(psych)
+post.exp <- extract.samples(m8.1.exp)
+pairs.panels(as.data.frame(post.exp))
+```
+
+```{r}
+post.unif <- extract.samples(m8.1.unif)
+pairs.panels(as.data.frame(post.unif))
+```
+
+### 8M2
+
+```{r message=FALSE, warning=FALSE}
+# fit models with a cauchy prior on sigma for varying scale parameter values
+m8.2.cauchy.10 <- map2stan(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa ,
+    a ~ dnorm(0, 100),
+    bR ~ dnorm(0, 10),
+    bA ~ dnorm(0, 10),
+    bAR ~ dnorm(0, 10),
+    sigma ~ dcauchy(0, 10)
+  ), data=dd.trim )
+
+m8.2.cauchy.1 <- map2stan(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa ,
+    a ~ dnorm(0, 100),
+    bR ~ dnorm(0, 10),
+    bA ~ dnorm(0, 10),
+    bAR ~ dnorm(0, 10),
+    sigma ~ dcauchy(0, 1)
+  ), data=dd.trim )
+
+m8.2.cauchy.point.1 <- map2stan(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa ,
+    a ~ dnorm(0, 100),
+    bR ~ dnorm(0, 10),
+    bA ~ dnorm(0, 10),
+    bAR ~ dnorm(0, 10),
+    sigma ~ dcauchy(0, .1)
+  ), data=dd.trim )
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# fit models with an exponential prior on sigma for varying scale parameter values
+m8.2.exp.10 <- map2stan(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa ,
+    a ~ dnorm(0, 100),
+    bR ~ dnorm(0, 10),
+    bA ~ dnorm(0, 10),
+    bAR ~ dnorm(0, 10),
+    sigma ~ dexp(10)
+  ), data=dd.trim )
+
+m8.2.exp.1 <- map2stan(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa ,
+    a ~ dnorm(0, 100),
+    bR ~ dnorm(0, 10),
+    bA ~ dnorm(0, 10),
+    bAR ~ dnorm(0, 10),
+    sigma ~ dexp(1)
+  ), data=dd.trim )
+
+m8.2.exp.point.1 <- map2stan(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa ,
+    a ~ dnorm(0, 100),
+    bR ~ dnorm(0, 10),
+    bA ~ dnorm(0, 10),
+    bAR ~ dnorm(0, 10),
+    sigma ~ dexp(.1)
+  ), data=dd.trim )
+```
+
+```{r}
+# plot the posterior distribution for sigma under the cauchy priors
+sigma.cauchy.10 <- extract.samples(m8.2.cauchy.10, pars="sigma")
+sigma.cauchy.1 <- extract.samples(m8.2.cauchy.1, pars="sigma")
+sigma.cauchy.point.1 <- extract.samples(m8.2.cauchy.point.1, pars="sigma")
+dens(sigma.cauchy.10[[1]], xlab="sigma", col="red")
+dens(sigma.cauchy.1[[1]], add=TRUE, col="blue")
+dens(sigma.cauchy.point.1[[1]], add=TRUE, col="green")
+```
+
+```{r}
+# plot the posterior distribution for sigma under the exponential priors
+sigma.exp.10 <- extract.samples(m8.2.exp.10, pars="sigma")
+sigma.exp.1 <- extract.samples(m8.2.exp.1, pars="sigma")
+sigma.exp.point.1 <- extract.samples(m8.2.exp.point.1, pars="sigma")
+dens(sigma.exp.10[[1]], xlab="sigma", col="red")
+dens(sigma.exp.1[[1]], add=TRUE, col="blue")
+dens(sigma.exp.point.1[[1]], add=TRUE, col="green")
+```
+
+### 8M3
+
+```{r}
+# estimate the terrain ruggedness model with varying values for warmup
+m <- map2stan(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa ,
+    a ~ dnorm(0,100),
+    bR ~ dnorm(0,10),
+    bA ~ dnorm(0,10),
+    bAR ~ dnorm(0,10),
+    sigma ~ dcauchy(0,2)
+  ), data=dd.trim )
+```
+
+```{r}
+m.warmup.1 <- map2stan(m, chains = 4, cores = 4, warmup = 1, iter = 1000)
+m.warmup.5 <- map2stan(m, chains = 4, cores = 4, warmup = 5, iter = 1000)
+m.warmup.10 <- map2stan(m, chains = 4, cores = 4, warmup = 10, iter = 1000)
+m.warmup.50 <- map2stan(m, chains = 4, cores = 4, warmup = 50, iter = 1000)
+m.warmup.100 <- map2stan(m, chains = 4, cores = 4, warmup = 100, iter = 1000)
+m.warmup.500 <- map2stan(m, chains = 4, cores = 4, warmup = 500, iter = 1000)
+m.warmup.1000 <- map2stan(m, chains = 4, cores = 4, warmup = 1000, iter = 1000)
+```
+
+```{r}
+precis(m.warmup.1)
+precis(m.warmup.5)
+precis(m.warmup.10)
+precis(m.warmup.50)
+precis(m.warmup.100)
+precis(m.warmup.500)
+precis(m.warmup.1000)
+```
+
+```{r fig.width = 10}
+plot(m.warmup.1)
+```
+
+```{r fig.width = 10}
+plot(m.warmup.50)
+```
+
+## Hard Practice
+
+### 8H1
+
+```{r}
+mp <- map2stan(
+  alist(
+    a ~ dnorm(0,1),
+    b ~ dcauchy(0,1)
+  ),
+  data=list(y=1),
+  start=list(a=0,b=0),
+  iter=1e4, warmup=100 , WAIC=FALSE )
+```
+
+```{r}
+# extract samples for a and b
+trials <- 1e4
+a.samples <- extract.samples(mp, pars="a", n = trials)
+b.samples <- extract.samples(mp, pars="b", n = trials)
+```
+
+```{r}
+plot(x = seq(from = 1, to = trials, length.out = trials), y = a.samples$a, ylim = c(-4, 4))
+lines(seq(from = 1, to = trials, length.out = trials), a.samples$a)
+```
+
+```{r}
+plot(x = seq(from = 1, to = trials, length.out = trials), y = b.samples$b, ylim = c(-50, 50))
+lines(seq(from = 1, to = trials, length.out = trials), b.samples$b)
+```
+
+### 8H2
+
+```{r}
+data(WaffleDivorce)
+d <- WaffleDivorce
+d$MedianAgeMarriage_s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/
+  sd(d$MedianAgeMarriage)
+d$Marriage_s <- (d$Marriage - mean(d$Marriage))/sd(d$Marriage)
+df <- d[, c("Divorce", "MedianAgeMarriage_s", "Marriage_s")]
+```
+
+```{r}
+m5.1_stan <- map2stan(
+  alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bA * MedianAgeMarriage_s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bA ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ),
+  data = df , chains=4 )
+
+m5.2_stan <- map2stan(
+  alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bR * Marriage_s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bR ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ),
+  data = df , chains=4 )
+
+m5.3_stan <- map2stan(
+  alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*Marriage_s + bA*MedianAgeMarriage_s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bR ~ dnorm( 0 , 1 ) ,
+    bA ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ),
+  data = df , chains=4 )
+```
+
+```{r}
+# compare the resulting models
+compare(m5.1_stan,m5.2_stan,m5.3_stan)
+```
+
+```{r}
+library(DiagrammeR)
+
+grViz("
+      digraph boxes_and_circles {
+      
+      node [shape = circle]
+      MCMC; Metropolis; 'Metropolis Hastings'; 'Hamilton MC'; 'Gibbs Sampling'; BUGS; JAGS
+
+      node [shape = box
+            fontname = Helvetica
+            penwidth = 2.0]
+      'symmetric proposal'; 'asymmetric proposal'; 'high cost, high efficiency'; 'continous parameters';
+        'full sweep'; 'conjugate pairs/priors'; 'adaptive proposal'
+      
+      edge [ arrowhead = NULL]
+      MCMC -> 'Metropolis' [label = ' algorithm'];
+      MCMC -> 'Metropolis Hastings' [label = ' algorithm'];
+      Metropolis -> 'symmetric proposal';
+      'Metropolis Hastings' -> 'asymmetric proposal';
+      'Metropolis Hastings' -> 'Gibbs Sampling' [label = ' technique'];
+      'Metropolis Hastings' -> 'Hamilton MC' [label = ' technique'];
+      'Gibbs Sampling' -> 'adaptive proposal';
+      'Gibbs Sampling' -> BUGS [label = ' software'];
+      'Gibbs Sampling' -> 'conjugate pairs/priors';
+      'Gibbs Sampling' -> JAGS;
+      'Hamilton MC' -> 'full sweep';
+      'Hamilton MC' -> 'continous parameters';
+      'Hamilton MC' -> 'high cost, high efficiency'
+      
+      }
+      ")
+```
+
+

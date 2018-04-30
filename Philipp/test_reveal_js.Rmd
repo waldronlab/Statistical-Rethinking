@@ -1,0 +1,465 @@
+---
+title: "Monte Carlo Estimation"
+author: "Philipp Grafendorfer"
+date: "25th of April 2018"
+output: revealjs::revealjs_presentation
+  reveal_plugins: ["notes"]
+  self_contained: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+library(DiagrammeR)
+library(png)
+library(grid)
+library(rethinking)
+library(psych)
+library(revealjs)
+
+data(rugged)
+d <- rugged
+d$log_gdp <- log(d$rgdppc_2000)
+dd <- d[ complete.cases(d$rgdppc_2000) , ]
+dd.trim <- dd[ , c("log_gdp", "rugged", "cont_africa")]
+```
+
+## Overview
+
+- Introduction and structure
+- The Metropolis Algorithm
+- Hamilton Monte Carlo
+- Exercises and applications
+- Bad sampling and how to tam a wild chain
+- Compare different models
+
+Note:
+This is my *note*.
+
+
+## Motivation and Introduction
+
+### Stanislaw Marcin Ulam (1909-1984)
+
+<div class="columns-2">
+
+- stan programming language
+- student of Banach
+- early development of nuclear weapons
+- main contributor to the Collatz problem
+
+```{r fig.height=3,echo=FALSE, fig.align='center'}
+img <- readPNG("img/Ulam_5.png")
+ grid.raster(img)
+```
+</div>
+
+----
+
+### Nicholas Metropolis (1915-1999) 
+
+<div class="columns-2">
+
+- physicist
+- developed the Monte Carlo Method with Ulam and von Neumann in Los Alamos
+- inventor of simulated annealing
+
+```{r fig.height=3,echo=FALSE, fig.align='center'}
+img <- readPNG("img/metropolis_0.png")
+ grid.raster(img)
+```
+</div>
+
+----
+
+### Edward Teller (1908-2003)
+
+<div class="columns-2">
+
+- "father" of hydrogen bomb
+- "Dr. Strangelove"
+- Manhattan Project
+
+```{r fig.height=3,echo=FALSE, fig.align='center'}
+img <- readPNG("img/edward_teller.png")
+ grid.raster(img)
+```
+</div>
+
+----
+
+### The Journey of King Markov (through a discrete parameter space)
+
+```{r fig.height=6,echo=FALSE, fig.align='center'}
+img <- readPNG("img/king_markov.png")
+ grid.raster(img)
+```
+
+----
+
+### MCMC 
+
+> - Sampling of (in general) non- normal posteriors
+> - can be very efficient
+> - output is a sample of posteriors
+> - a byproduct of MCMC is a model fit but we are not (primarily) interested in that
+
+----
+
+### Structural Overview
+
+```{r myplot,echo=FALSE,fig.width=10}
+grViz("
+      digraph boxes_and_circles {
+      
+      node [shape = circle]
+      MCMC; Metropolis; 'Metropolis Hastings'; 'Hamilton MC'; 'Gibbs Sampling'; BUGS; JAGS
+
+      node [shape = box
+            fontname = Helvetica
+            penwidth = 2.0]
+      'symmetric proposal'; 'asymmetric proposal'; 'high cost, high efficiency'; 'continous parameters';
+        'full sweep'; 'conjugate pairs/priors'; 'adaptive proposal'
+      
+      edge [ arrowhead = NULL]
+      MCMC -> 'Metropolis' [label = ' algorithm'];
+      MCMC -> 'Metropolis Hastings' [label = ' algorithm'];
+      Metropolis -> 'symmetric proposal';
+      'Metropolis Hastings' -> 'asymmetric proposal';
+      'Metropolis Hastings' -> 'Gibbs Sampling' [label = ' technique'];
+      'Metropolis Hastings' -> 'Hamilton MC' [label = ' technique'];
+      'Gibbs Sampling' -> 'adaptive proposal';
+      'Gibbs Sampling' -> BUGS [label = ' software'];
+      'Gibbs Sampling' -> 'conjugate pairs/priors';
+      'Gibbs Sampling' -> JAGS;
+      'Hamilton MC' -> 'full sweep';
+      'Hamilton MC' -> 'continous parameters';
+      'Hamilton MC' -> 'high cost, high efficiency'
+      
+      }
+      ")
+```
+
+## Markov Chain Monte Carlo
+
+```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
+img <- readPNG("img/detail_view_mcmc_kippling.png")
+ grid.raster(img)
+```
+
+----
+
+```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
+img <- readPNG("img/reason_for_mcmc.png")
+ grid.raster(img)
+```
+
+## The Metropolis Algorithm
+
+```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
+img <- readPNG("img/metro_alg_1.png")
+ grid.raster(img)
+```
+
+----
+
+```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
+img <- readPNG("img/metro_alg_2.png")
+ grid.raster(img)
+```
+
+----
+
+```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
+img <- readPNG("img/metro_alg_3.png")
+ grid.raster(img)
+```
+
+----
+
+```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
+img <- readPNG("img/metro_alg_4.png")
+ grid.raster(img)
+```
+
+----
+
+```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
+img <- readPNG("img/metro_alg_5.png")
+ grid.raster(img)
+```
+
+----
+
+```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
+img <- readPNG("img/metro_alg_6.png")
+ grid.raster(img)
+```
+
+----
+
+```{r fig.width=10,echo=FALSE, fig.cap="David Kipping, Sagan Workshop 2016"}
+img <- readPNG("img/metro_alg_7.png")
+ grid.raster(img)
+```
+
+## Hamilton Monte Carlo (HMC)
+
+*"It appears to be a quite general principle that, whenever there is a randomized*
+*way of doing something, then there is a nonrandomized way that delivers*
+*better performance but requires more thought."* —E. T. Jaynes
+
+- HMC is less random
+- only continous parameters
+- needs hyperparameter tuning with stan
+- works well with a big number of parameters
+- sweeps over whole parameter space
+- easy Parallelization
+- from now on only HMC
+
+## Exercise 8M1
+
+*Re-estimate the terrain ruggedness model from the chapter, but now using a uniform prior and*
+*an exponential prior for the standard deviation, sigma. The uniform prior should be dunif(0,10)*
+*and the exponential should be dexp(1). Do the different priors have any detectible influence on the*
+*posterior distribution?*
+
+```{r eval=T, include=F}
+# put a uniform prior on sigma
+m8.1.unif <- readRDS("model/m8.1.unif.rds")
+```
+
+```{r eval=T, include=F}
+# put an exponential prior on sigma
+m8.1.exp <- readRDS("model/m8.1.exp.rds")
+```
+
+```{r fig.height=4, fig.align='center'}
+# visualize each prior
+# a legend can be added
+curve(dcauchy(x, 0, 2), from = 0, to = 10, xlab = "sigma", ylab = "Prior Density", ylim = c(0, 1))
+curve(dunif(x, 0, 10), from = 0, to = 10, add = TRUE, col = "blue")
+curve(dexp(x, 1), from = 0, to = 10, add = TRUE, col = "red")
+legend(6, 0.8, legend=c("Cauchy", "Uniform", "Exponential"), col=c("black", "blue", "red"), lty=1:1, cex=0.8, title = "Prior Distribution")
+```
+
+----
+
+### Sampling the posterior distribution
+
+```{r message=FALSE, warning=FALSE, fig.height=4, fig.align='center'}
+# plot the posterior for sigma for each model
+sigma_unif <- extract.samples(m8.1.unif,pars="sigma")
+sigma_exp <- extract.samples(m8.1.exp,pars="sigma")
+dens(sigma_unif[[1]], xlab="sigma", xlim=c(0.5,1.5), col="red")
+dens(sigma_exp[[1]], add=TRUE, col="blue")
+legend(1.2, 6, legend=c("Uniform", "Exponential"), col=c("red", "blue"), lty=1:1, cex=0.8, title = "Posterior Distribution")
+```
+
+----
+
+### Pair Plot Posterior Distributions
+
+```{r fig.cap="Posterior with Uniform Prior for Sigma", fig.align='center', fig.height=5, fig.width=10}
+post.unif <- extract.samples(m8.1.unif)
+pairs.panels(as.data.frame(post.unif))
+```
+
+---- 
+ 
+### Pair Plot Posterior Distributions
+
+```{r fig.cap="Posterior with Exponential Prior for Sigma", fig.align='center', fig.height=5, fig.width=10}
+post.exp <- extract.samples(m8.1.exp)
+pairs.panels(as.data.frame(post.exp))
+```
+
+----
+
+### The precis function delivers
+
+```{r}
+precis(m8.1.exp)
+```
+
+- standard parameter for iterations: 2000
+- standard parameter for warmup: 1000
+- **n_eff** gives an estimated number of effective samples from the posterior respectively
+- **Rhat** is the *Gelman Rubicon Convergence Diagnostic* for the markov chain (should be close to 1)
+- The intervall is a Maximum A Posteriori (MAP) intervall
+
+----
+
+### Model summary
+
+```{r}
+show(m8.1.exp)
+```
+
+----
+
+### Traceplot
+
+Long warmup phase.
+
+```{r fig.align='center', fig.height=4, fig.width=10}
+plot(m8.1.exp)
+```
+
+## Exercise 8M2
+
+*The Cauchy and exponential priors from the terrain ruggedness model are very weak. They*
+*can be made more informative by reducing their scale. Compare the dcauchy and dexp priors for*
+*progressively smaller values of the scaling parameter. As these priors become stronger, how does each*
+*influence the posterior distribution?*
+
+```{r}
+m8.2.cauchy.10 <- readRDS("model/m8.2.cauchy.10.rds")
+
+m8.2.cauchy.1 <- readRDS("model/m8.2.cauchy.1.rds")
+
+m8.2.cauchy.point.1 <- readRDS("model/m8.2.cauchy.point.1.rds")
+```
+
+```{r}
+m8.2.exp.10 <- readRDS("model/m8.2.exp.10.rds")
+
+m8.2.exp.1 <- readRDS("model/m8.2.exp.1.rds")
+
+m8.2.exp.point.1 <- readRDS("model/m8.2.exp.point.1.rds")
+```
+
+```{r fig.align='center', fig.width=10, fig.cap='Decreasing Scaling Parameter for Cauchy Distribution'}
+curve(dcauchy(x, 0, 10), from = 0, to = 4, xlab = "sigma", ylab = "Prior Density", ylim = c(0, 1))
+curve(dcauchy(x, 0, 1), from = 0, to = 4, add = TRUE, col = "blue")
+curve(dcauchy(x, 0, 0.1), from = 0, to = 4, add = TRUE, col = "red")
+legend(6, 0.8, legend=c("10", "1", "0.1"), col=c("black", "blue", "red"), lty=1:1, cex=0.8, title = "Prior Distribution")
+```
+
+----
+
+### Decreasing Scaling Parameter for Exponential Distribution
+
+```{r fig.align='center', fig.width=10}
+curve(dexp(x, 10), from = 0, to = 10, xlab = "sigma", ylab = "Prior Density", ylim = c(0, 1))
+curve(dexp(x, 1), from = 0, to = 10, add = TRUE, col = "blue")
+curve(dexp(x, 0.1), from = 0, to = 10, add = TRUE, col = "red")
+legend(6, 0.8, legend=c("10", "1", "0.1"), col=c("black", "blue", "red"), lty=1:1, cex=0.8, title = "Prior Distribution")
+```
+
+----
+
+### Posterior Distribution for different Cauchy Scales
+
+```{r fig.align='center', fig.width=10}
+sigma_cauchy10 <- extract.samples(m8.2.cauchy.10, pars="sigma")
+sigma_cauchy1 <- extract.samples(m8.2.cauchy.1, pars="sigma")
+sigma_cauchy.point.1 <- extract.samples(m8.2.cauchy.point.1, pars="sigma")
+dens(sigma_cauchy10[[1]], xlab="sigma", xlim=c(0.5,1.5), col="black")
+dens(sigma_cauchy1[[1]], add=TRUE, col="blue")
+dens(sigma_cauchy.point.1[[1]], add=TRUE, col="red")
+legend(1.2, 6, legend=c("10", "1", "0.1"), col=c("black", "blue", "red"), lty=1:1, cex=0.8, title = "Posterior Distribution")
+```
+
+## A wild chain
+
+This one will go nuts.
+
+````
+```{r}`r ''`
+y <- c(-1,1)
+m8.2 <- map2stan(
+  alist(
+    y ~ dnorm( mu , sigma ) ,
+    mu <- alpha
+    ) ,
+  data=list(y=y) , start=list(alpha=0,sigma=1) ,
+  chains=2 , iter=4000 , warmup=1000 )
+```
+````
+----
+
+### A wild chain's trace
+
+- a problem with some models is that there are broad flat regions of the posterior density.
+- often with flat priors
+- can result in erratical samples
+
+```{r fig.align='center', fig.height=3, fig.width=10}
+y <- c(-1,1)
+m8.2 <- readRDS("model/m8.2.rds")
+plot(m8.2)
+```
+
+----
+
+### Summary
+
+```{r}
+precis(m8.2)
+```
+
+Bringing in weak priors helps a lot.
+
+```{r fig.height=4, fig.width=10}
+m8.3 <- readRDS("model/m8.3.rds")
+plot(m8.3)
+```
+
+----
+
+### Weak Priors
+
+Prior introduction
+
+**alpha ~ dnorm( 1 , 10 ) ,**
+**sigma ~ dcauchy( 0 , 1 )**
+
+```{r}
+precis(m8.3)
+```
+
+## Comparing different models Exercise 8H2
+
+```{r}
+data(WaffleDivorce)
+d <- WaffleDivorce
+d$MedianAgeMarriage_s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/
+  sd(d$MedianAgeMarriage)
+d$Marriage_s <- (d$Marriage - mean(d$Marriage))/sd(d$Marriage)
+df <- d[, c("Divorce", "MedianAgeMarriage_s", "Marriage_s")]
+```
+
+```{r}
+m5.1_stan <- readRDS("model/m5.1_stan.rds")
+
+m5.2_stan <- readRDS("model/m5.2_stan.rds")
+
+m5.3_stan <- readRDS("model/m5.3_stan.rds")
+```
+
+```{r}
+# compare the resulting models
+compare(m5.1_stan,m5.2_stan,m5.3_stan)
+```
+
+
+## Thank you for your attention.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
