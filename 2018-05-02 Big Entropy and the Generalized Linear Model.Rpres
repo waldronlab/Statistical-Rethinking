@@ -41,24 +41,24 @@ Conventional choices are not always the best choices
 
 Reasons for betting on distributions with the biggest entropy:
 
-- widest and least informative distribution
-- nature tends to produce empirical distributions that have high entropy
-- it tends to work
+- Widest and least informative distribution
+- Nature tends to produce empirical distributions that have high entropy
+- It tends to work
 
 Introduction - Generalized Linear Model
 ========================================================
 
-- much like linear regressions
-- model that replaces a parameter of a likelihood function with a linear model
-- maximum entropy helps to choose likelihood functions
+- Much like linear regressions
+- Model that replaces a parameter of a likelihood function with a linear model
+- Maximum entropy helps to choose likelihood functions
 
 Maximum Entropy
 ========================================================
 
 We seek measure of uncertainty that satisfies: 
-- the measure should be continuous
-- it should increase as the number of possible events increases
-- it should be additive
+- The measure should be continuous
+- It should increase as the number of possible events increases
+- It should be additive
 
 ## Information Entropy: 
 <span style="color:red">
@@ -85,7 +85,7 @@ p$C <- c(0,2,6,2,0)
 p$D <- c(1,2,4,2,1)
 p$E <- c(2,2,2,2,2)
 
-#Normalize each such that it is a probability distribution
+# Normalize each such that it is a probability distribution
 
 p_norm <- lapply( p , function(q) q/sum(q))
 
@@ -154,8 +154,8 @@ Maximum Entropy - Binomial
 
 We want to show that Binomial distribution has the largest entropy of any distribution that satisfies these constraints:
 
-- only two unordered events
-- constant expect value
+- Only two unordered events
+- Constant expect value
 
 Maximum Entropy - Binomial
 ========================================================
@@ -198,7 +198,7 @@ Maximum Entropy - Binomial
 p <- 0.7 
 A <- c((1-p)^2 , p*(1-p) , (1-p)*p , p^2)
 A
-# Calculate Entropie
+# Calculate Entropy
 -sum(A*log(A))
 ```
 
@@ -213,7 +213,7 @@ library(rethinking)
     # switching the formula (1) to x4 yields:
     x4 <- ((G)*sum(x123)-x123[2]-x123[3])/(2-G)
     z <- sum( c(x123,x4) )
-    # Normalize values x1 to x4 to become a probability distribution
+    # Normalize values x1 to x4 to get a probability distribution
     p <- c( x123 , x4 )/z
     list( H=-sum( p*log(p) ) , p=p )
   }
@@ -230,14 +230,14 @@ Maximum Entropy - Binomial
 ```{r}
 entropies <- as.numeric(H[1,])
 distributions <- H[2,]
-max(entropies)# Entropie binomial distribution: 1.221729
+max(entropies)# Entropy binomial distribution: 1.221729
 distributions[which.max(entropies)]# binomial d.: 0.09, 0.21, 0.21, 0.49
 ```
 
 Maximum Entropy 
 ========================================================
 
-- two un-ordered outcomes are possible with expected numbers are assumed to be constant -> binomial distribution
+- Two un-ordered outcomes are possible and the expected numbers are assumed to be constant -> binomial distribution
 - Gaussian distribution most conservative distribution for continous outcome and finite variance
 - Chapter 2: Binomial distribution: counting how many paths through garden of forking data were consistent with assumption
   - Entropy does the same -> Entropy is counting
@@ -250,15 +250,15 @@ Generalized linear models
 
 <img src="figures/lm.png">
 <span style="color:black">
-- not the best choice if outcome is discrete or bounded
-- for example: drawing marbles
+- Not the best choice if outcome is discrete or bounded
+- For example: drawing marbles
 
 
 ## Generalized linear model:
 <span style="color:black">
-- use prior knowledge about outcome
-- use maximum entropy for choice of distribution
-- replace a parameter that descripte the shape of thelikelihood with a linear model
+- Use prior knowledge about outcome
+- Use maximum entropy for choice of distribution
+- Replace a parameter that describe the shape of the likelihood with a linear model
 
 <img src="figures/binGLM.png">
 
@@ -266,11 +266,11 @@ Generalized linear models
 ========================================================
 
 Difference to linear model:
-- different likelihood
-- we have to use a link function
+- Different likelihood
+- We have to use a link function
 
 Binomial distribution:
-- shape described by 2 parameters (n und p; np = expected value)
+- Shape described by 2 parameters (n und p; mean = np)
 - n usually known -> attach linear model to p
 - p probability mass
 <div style="text-align:center;";>
@@ -279,8 +279,8 @@ Binomial distribution:
 Generalized linear models - Meet the family
 ========================================================
 
-- most common distributions used in statistical modeling: exponential family
-- every member has maximum entropy
+- Most common distributions used in statistical modelling: exponential family
+- Every member has maximum entropy
 
 <div style="text-align:center;";>
 <img src="figures/family.png";width=500 height=500>
@@ -292,7 +292,7 @@ Generalized linear models - Exponential Distribution
 - Distribution of distance and duration, kinds of measurement that represent displacement from some point of reference either in time or space
 -	If probability of an event is constant in time or across space then the distribution of events tends towards exponential
 - Maximum entropy among all non-negative continuous distributions 
-- Shape descripted by a single parameter
+- Shape described by a single parameter
 - Distribution is the core of survival and event history analysis
 
 
@@ -304,7 +304,7 @@ Generalized linear models - Gamma Distribution
 - Peak can be above 0
 - If an event can only happen after two or more exponentially distributed events happen the resulting waiting times will be gamma distributed
 - Maximum entropy among all distributions with the same mean and same average logarithm
--	Shape descriped by 2 parameter
+-	Shape described by 2 parameter
 - Common in survival and event history analysis as well as some contexts in which a continuous measurement is constrained to be positive
 
 Generalized linear models - Poisson Distribution
@@ -321,7 +321,7 @@ Generalized linear models - Link Function
 <img src="figures/binGLM.png">
 - Used to build a regression model
 - Tries to avoid: 
-  - negative disgtances
+  - negative distances
   - probability masses that exceed 1
 - Most commonly used link functions:
   - logit link
@@ -330,7 +330,7 @@ Generalized linear models - Link Function
 Generalized linear models - Logit Link
 ========================================================
 - Maps a parameter that is defined as probability mass onto a linear model
-- Extreme commom with binomial Glm
+- Extreme commom with binomial GLM
 
 <div style="text-align:center;";>
 <img src="figures/logit.png">
@@ -351,7 +351,7 @@ Generalized linear models - Logit Link
 - Usually called logistic function or inverse-logit
 <div style="text-align:center;";>
 <img src="figures/logodds.png">
-- compression affects the interpretation of parameter estimaes: a unit change in the predictor variable does no longer produce a constant change in the mean of the outcome 
+- Compression affects the interpretation of parameter estimates: a unit change in the predictor variable does no longer produce a constant change in the mean of the outcome 
 Generalized linear models - Log Link
 ========================================================
 - Maps a paramater which is defined over positive real values
@@ -361,7 +361,7 @@ Generalized linear models - Log Link
 <img src="figures/sigmaglm.png">
 <div style="text-align:center;";>
 <img src="figures/loglink.png">
-- cannot predict values outside the range of data used to fit the model
+- Cannot predict values outside the range of data used to fit the model
 
 Generalized linear models
 ========================================================
