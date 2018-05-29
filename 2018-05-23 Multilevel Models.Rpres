@@ -1,28 +1,1331 @@
-Untitled
+Multilevel Models
 ========================================================
-author: 
-date: 
+author: Tamara Maier
+date: 23-5-2018
 autosize: true
 
-First Slide
+
+
+
+
+Schedule for today
 ========================================================
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+```{r, warning=F, echo=F}
+library(rethinking)
+library(extraDistr)
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
-Slide With Code
-========================================================
-
-```{r}
-summary(cars)
+setwd("C:/Users/Tamara/Documents/3.Semester/SpecialTopics")
 ```
 
-Slide With Plot
+- Introduction with example
+- Example: Multilevel tadpoles
+- Varying effects and the underfitting/overfitting trade-off
+- More than one type of cluster
+- Multilevel posterior predictions
+- Exercises
+
+
+Models up to now
 ========================================================
 
-```{r, echo=FALSE}
-plot(cars)
+- moves from one cluster to another, estimating parameter for each cluster, but forgetting everything about the previous clusters
+
+- assume parameters are independent of one another and learn from separate portions of data
+
+- instead we want to use all the information
+
+- learn simultaneously about each cluster while learning about the population of clusters 
+
+- allows us to transfer information across cluster and that improves accuracy
+
+
+Example: waiting time in cafes
+========================================================
+
+- after observation update prior
+
+- posterior distribution for the waiting time at the first cafe
+
+- the distribution of waiting times in the population becomes the prior for each cafe
+
+- track a parameter for each cafe and at least 2 parameter to describe the population
+
+- as observing the waiting times, update estimates for each cafe and estimates for the population
+
+
+
+
+Example: waiting time in cafes
+========================================================
+
+- if population seems highly variable, then the prior is flat and uninformative -> observations at any cafe do little to the estimates at another
+
+- if population seems to contain little variation, the prior is narrow and highly informative -> observations at any cafe will have impact on estimates at other cafes
+
+
+Multilevel Models
+========================================================
+
+- remember features of each cluster as they learn about all the clusters
+
+- depending on variation among the clusters, which is learned by the data, the model pools information across clusters
+
+- pooling tends to improve estimates about each cluster
+
+
+
+Costs of Multilevel Models:
+========================================================
+
+- define the distributions from which the characteristics of the clusters arise  -> conservative maximum entropy distributions
+
+- new estimation challenges  -> MCMC estimation
+
+- can be hard to understand, because they make predictions at different levels of the data
+
+
+
+Example: Multilevel tadpoles
+========================================================
+
+```{r, warning=F}
+
+data(reedfrogs)
+df <- reedfrogs
+#make the tank cluster variable
+df$tank <- 1:nrow(df)
+
+head(df)
+ 
 ```
+
+
+Example: Multilevel tadpoles
+========================================================
+
+$$ $$
+$$\large s_i \sim Binomial(n_i, p_i)$$
+
+$$\large logit(p_i) = \alpha_{TANK[i]}$$
+
+$$\large \alpha_{TANK} \sim Normal(0,5)$$
+
+Example: Multilevel tadpoles
+========================================================
+
+```{r, warning=F}
+
+#m12.1 <- map2stan(
+  #alist(
+ #   surv ~ dbinom(density, p),
+  #  logit(p) <- a_tank[tank],
+   # a_tank[tank] ~ dnorm(0,5)
+#  ),
+ # data = df
+#)
+
+load("m121.RData")
+ 
+```
+
+
+Example: Multilevel tadpoles
+========================================================
+
+$$ $$
+$$ s_i \sim Binomial(n_i, p_i)$$
+
+$$ logit(p_i) = \alpha_{TANK[i]}$$
+
+$$ \alpha_{TANK} \sim Normal(\alpha,\sigma)$$
+
+$$ \alpha \sim Normal(0,1)$$
+
+$$ \sigma \sim HalfCauchy(0,1)$$
+
+
+
+Example: Multilevel tadpoles
+========================================================
+
+```{r, warning=F}
+
+# m12.2 <- map2stan(
+#   alist(
+#     surv ~ dbinom(density, p),
+#     logit(p) <- a_tank[tank],
+#     a_tank[tank] ~ dnorm(a,sigma),
+#     a ~ dnorm(0,1),
+#     sigma ~ dcauchy(0,1)
+#   ),
+#   data = df, iter=4000, chains=4
+# )   #estimates for 50 parameters: one overall sample intercept alpha, the variance among tanks sigma and then 48 per tank intercepts
+
+```
+
+Example: Multilevel tadpoles
+========================================================
+
+```{r, warning=F}
+
+load("m122.RData")
+compare(m12.1, m12.2)
+```
+
+Example: Multilevel tadpoles
+========================================================
+
+```{r, warning=F, echo=FALSE}
+#extract Stan samples
+post <- extract.samples(m12.2)
+
+#compute median intercept for each tank
+#also transform to probability with logistic
+df$propsurv.est <- logistic(apply(post$a_tank, 2, median))
+
+#display row proportions surviving in each tank
+plot(df$propsurv, ylim=c(0,1), pch=16, xaxt="n", xlab="tank", ylab="proportion suvival", col=rangi2)
+axis(1, at=c(1,16,32,48), labels=c(1,16,32,48))
+
+#overlay posterior medians
+points(df$propsurv.est)
+
+#mark posterior median probability across tanks
+abline(h=logistic(median(post$a)), lty=2)
+
+#draw vertical dividers between tank densities
+abline(v=16.5, lwd=0.5)
+abline(v=32.5, lwd=0.5)
+text(8, 0, "small tanks")
+text(16+8, 0, "medium tanks")
+text(32+8, 0, "large tanks")
+```
+
+
+
+<!-- Example: Multilevel tadpoles -->
+<!-- ======================================================== -->
+
+<!-- - blue points show empirical proportions of survivors -->
+
+<!-- - black circles are the varying intercept medians -->
+
+<!-- - horizontal dashed line is the estimated median survival proportion in the population of tanks -->
+
+
+<!-- Example: Multilevel tadpoles -->
+<!-- ======================================================== -->
+
+<!-- - in every case the multilevel estimate is closer to the dashed line than the raw empirical estimate is -> phenomenon is called shrinkage -->
+
+<!-- - shrinkage results from regularization (as in Chapter 6) -->
+
+<!-- - estimates for the smaller tanks have shrunk farther from the blue points -> varying intercepts for the smaller tanks, with smaller sample sizes, shrink more -->
+
+<!-- - the farther a blue point is from the dashed line, the greater the distance between it and the corresponding multilevel estimate -> shrinkage is stronger, the further a tanks empirical proportion is from the global average $\alpha$ -->
+
+
+
+<!-- Example: Multilevel tadpoles -->
+<!-- ======================================================== -->
+
+<!-- - these phenomena come from pooling information across clusters to improve estimates -->
+
+<!-- - pooling means that each tank provides information that can be used to improve the estimates for all of the other tanks -->
+
+
+
+Varying effects and the underfitting/overfitting trade-off
+========================================================
+
+- varying intercepts are regularized estimates, but regularized by estimating how divers the clusters are while estimating the features of each cluster
+
+- benefit of using varying effects estimates, instead of empirical raw estimates, is they provide more accurate estimates of the individual cluster intercepts
+
+- on average, the varying effects actually provide a better estimate of the individual tank means
+
+- reason is that they do a better job of trading off underfitting and overfitting
+
+
+underfitting/overfitting trade-off in context of frog example
+========================================================
+
+predict future survival from three perspectives:
+
+- complete pooling: assume population of ponds is invariant; estimating a common intercept for all ponds
+
+- no pooling: assume each pond tells us nothing about any other pond 
+
+- partial pooling: using an adaptive regularizing prior, as in the previous section
+
+
+complete pooling
+========================================================
+
+- pooling the data from all ponds to produce a single estimate that is applied in every pond 
+
+- assuming the variation among ponds is zero (all ponds are identical)
+
+- use overall mean across all ponds to make predictions for each pond
+
+- lot of data contributes to estimate, so can be quite precise
+
+- estimate is unlikely to exactly match the mean of any particular pond -> underfits the data
+
+
+no pooling
+========================================================
+
+- use survival proportions for each pond to make predictions 
+
+- use separate intercept for each pond (blue points are same kind of estimate)
+
+- in each pond, quite little data contributes to each estimate, estimates are imprecise (especially in small ponds)
+
+- error of estimates is high -> overfit the data 
+
+- no information is shared across ponds
+
+- assuming the variation among ponds is infinite 
+
+
+partial pooling
+========================================================
+
+- produce estimates for each cluster that are less underfit than the grand mean and less overfit than the no pooling estimates
+
+- tend to be better estimates of the true per-cluster means
+
+- especially when ponds have few tadpoles in them
+
+
+simulate tadpole data
+========================================================
+
+compare no pooling estimates to partial pooling estimates
+
+
+$$ s_i \sim Binomial(n_i, p_i)$$
+
+$$ logit(p_i) = \alpha_{POND[i]}$$
+
+$$ \alpha_{POND} \sim Normal(\alpha,\sigma)$$
+
+$$ \alpha \sim Normal(0,1)$$
+
+$$ \sigma \sim HalfCauchy(0,1)$$
+
+simulate tadpole data
+========================================================
+
+assing values to:
+
+- $\alpha$, the average log-odds of survival in the entire population of ponds
+
+- $\sigma$, the standard deviation of the distribution of log-odds of survival among ponds
+
+- $\alpha_{POND}$, a vector of individual pond intercepts, one for each pond
+
+- samples sizes $n_i$ to each pond
+
+simulate tadpole data
+========================================================
+
+```{r, warning=F}
+
+a <- 1.4
+sigma <- 1.5
+nponds <- 60
+ni <- as.integer(rep(c(5, 10, 25, 35), each = 15))
+
+a_pond <- rnorm(nponds, mean = a, sd = sigma) #true log-odd survival for each pond
+
+dsim <- data.frame(pond = 1:nponds, ni = ni, true_a = a_pond)
+
+#simulate survivors
+#each pond i has ni potential survivors
+#pi=exp(a_pond)/(1+exp(a_pond))
+#generate simulated survivor count for each pond:
+dsim$si <- rbinom(nponds, prob = logistic(dsim$true_a), size = dsim$ni)
+
+ 
+```
+
+
+compute no-pooling estimates
+========================================================
+
+calculate the proportion of survivors in each pond
+
+```{r, warning=F}
+
+dsim$p_nopool <- dsim$si / dsim$ni
+ 
+```
+
+compute partial-pooling estimates
+========================================================
+
+```{r, warning=F}
+
+# m12.3 <- map2stan(
+#   alist(
+#     si ~ dbinom(ni, p),
+#     logit(p) <- a_pond[pond],
+#     a_pond[pond] ~ dnorm(a,sigma),
+#     a ~ dnorm(0,1),
+#     sigma ~ dcauchy(0,1)
+#   ),
+#   data = dsim, iter=1e4, warmup = 1000
+# )
+
+load("m123.Rdata")
+
+m12.3new <- map2stan(m12.3, data=dsim, iter=1e4, warmup=1000)
+ 
+```
+
+
+compute partial-pooling estimates
+========================================================
+
+```{r, warning=F}
+estimated.a_pond <- as.numeric(coef(m12.3new)[1:60])
+dsim$p_partpool <- logistic(estimated.a_pond)
+#to compare the true per-pond survival probabilities
+dsim$p_true <- logistic(dsim$true_a)
+
+#compute absolute error between the estimates and the true varying effects
+nopool_error <- abs(dsim$p_nopool - dsim$p_true)
+partpool_error <- abs(dsim$p_partpool - dsim$p_true)
+
+```
+
+plot of error for the simulated tadpole ponds
+========================================================
+
+```{r, warning=F, echo=F}
+plot(1:60, nopool_error, xlab="pond", ylab="absolute error", col=rangi2, pch=16, ylim=c(0, 0.4))
+points(1:60, partpool_error)
+
+#average error
+segments(1, mean(nopool_error[1:15]), 14.5, mean(nopool_error[1:15]), col=rangi2)
+segments(15.5, mean(nopool_error[16:30]), 29.5, mean(nopool_error[16:30]), col=rangi2)
+segments(30.5, mean(nopool_error[31:45]), 44.5, mean(nopool_error[31:45]), col=rangi2)
+segments(45.5, mean(nopool_error[46:60]), 59.5, mean(nopool_error[46:60]), col=rangi2)
+
+segments(1, mean(partpool_error[1:15]), 14.5, mean(partpool_error[1:15]), lty=2)
+segments(15.5, mean(partpool_error[16:30]), 29.5, mean(partpool_error[16:30]), lty=2)
+segments(30.5, mean(partpool_error[31:45]), 44.5, mean(partpool_error[31:45]), lty=2)
+segments(45.5, mean(partpool_error[46:60]), 59.5, mean(partpool_error[46:60]), lty=2)
+
+#draw vertical dividers between tank densities
+abline(v=15.5, lwd=0.5)
+abline(v=30.5, lwd=0.5)
+abline(v=45.5, lwd=0.5)
+
+text(7.5, 0.4, "tiny(5)")
+text(15+7.5, 0.4, "small(10)")
+text(30+7.5, 0.4, "medium(25)")
+text(45+7.5, 0.4, "large(35)")
+
+```
+
+
+
+plot of error of no-pooling and partial pooling estimates, for the simulated tadpole ponds
+========================================================
+
+- blue and black line segments show the average error of the no-pooling and partial pooling estimates
+
+- both kinds of estimates much more accurate for larger ponds 
+
+- no-pool estimates have higher average error
+
+- ponds with smallest sample size show greatest improvement over the naive no-pooling estimates 
+
+- shrinkage towards the mean results from trying to negotiate the underfitting and overfitting risks of the grand mean on one end and the individual means of each pond on the other
+
+
+
+plot of error of no-pooling and partial pooling estimates, for the simulated tadpole ponds
+========================================================
+
+- smaller ponds contain less information, so their varying estimates are influenced more by the pooled information from the other ponds (small ponds are prone to overfitting)
+
+- larger ponds shrink less, because they contain more information and are prone to less overfitting -> need less correcting
+
+- partially pooled estimates are better on average; they adjust individual cluster estimates to negotiate the trade-off between underfitting and overfitting
+
+
+
+More than one type of cluster
+========================================================
+
+- chimpanzees data
+
+- each pull is within a cluster of pulls belonging to an individual chimpanzee
+
+- each pull is also within an experimental block, which represents a collection of observations that happened on the same day
+
+- each observed pull belongs to an actor and a block
+
+- there may be unique intercepts for each actor and each block
+
+More than one type of cluster
+========================================================
+$$ $$
+$$ L_i \sim Binomial(1, p_i)$$
+
+$$ logit(p_i) = \alpha + \alpha_{ACTOR[i]} + ( \beta_P + \beta_{PC}C_i)P_i$$
+
+$$ \alpha_{ACTOR} \sim Normal(0,\sigma_{ACTOR})$$
+
+$$ \alpha \sim Normal(0,10)$$
+
+$$ \beta_P \sim Normal(0,10)$$
+
+$$ \beta_{PC} \sim Normal(0,10)$$
+
+$$ \sigma_{ACTOR} \sim HalfCauchy(0,1)$$
+
+
+
+
+Model with varying intercepts on actor
+========================================================
+
+```{r, warning=F}
+
+data(chimpanzees)
+d <- chimpanzees
+d$recipient <- NULL
+
+# m12.4 <- map2stan(
+#   alist(
+#     pulled_left ~ dbinom(1, p),
+#     logit(p) <- a + a_actor[actor] + (bp + bpC*condition)*prosoc_left,
+#     a_actor[actor] ~ dnorm(0,sigma_actor),
+#     a ~ dnorm(0, 10),
+#     bp ~ dnorm(0, 10),
+#     bpC ~ dnorm(0, 10),
+#     sigma_actor ~ dcauchy(0,1)
+#   ),
+#   data = d, iter=5000, warmup = 1000, chains = 4, cores = 3
+# )
+
+load("m124.Rdata")
+
+ 
+```
+
+
+========================================================
+$$ L_i \sim Binomial(1, p_i)$$
+
+$$ logit(p_i) = \alpha + \alpha_{ACTOR[i]} + \alpha_{BLOCK[i]} + ( \beta_P + \beta_{PC}C_i)P_i$$
+
+$$ \alpha_{ACTOR} \sim Normal(0,\sigma_{ACTOR})$$
+
+$$ \alpha_{BLOCK} \sim Normal(0,\sigma_{BLOCK})$$
+
+$$ \alpha \sim Normal(0,10)$$
+
+$$ \beta_P \sim Normal(0,10)$$
+
+$$ \beta_{PC} \sim Normal(0,10)$$
+
+$$ \sigma_{ACTOR} \sim HalfCauchy(0,1)$$
+
+$$ \sigma_{BLOCK} \sim HalfCauchy(0,1)$$
+
+
+Model with varying intercepts on actor and block
+========================================================
+
+```{r, warning=F}
+
+d$block_id <- d$block
+
+# m12.5 <- map2stan(
+#   alist(
+#     pulled_left ~ dbinom(1, p),
+#     logit(p) <- a + a_actor[actor] + a_block[block_id] + (bp + bpC*condition)*prosoc_left,
+#     a_actor[actor] ~ dnorm(0,sigma_actor),
+#     a_block[block_id] ~ dnorm(0, sigma_block),
+#     a ~ dnorm(0, 10),
+#     bp ~ dnorm(0, 10),
+#     bpC ~ dnorm(0, 10),
+#     sigma_actor ~ dcauchy(0,1),
+#     sigma_block ~ dcauchy(0,10)
+#   ),
+#   data = d, iter=6000, warmup = 1000, chains = 4, cores = 3
+# )
+
+load("m125.Rdata")
+
+ 
+```
+
+
+Model with varying intercepts on actor and block
+========================================================
+
+```{r, warning=F, echo=F}
+
+par(mfrow = c(1,2))
+plot(precis(m12.5, depth = 2))
+post <- extract.samples(m12.5)
+dens(post$sigma_block, xlab = "sigma", xlim=c(0,4))
+dens(post$sigma_actor, col = rangi2, lwd = 2, add = T)
+text(2, 0.85, "actor", col = rangi2)
+text(0.75, 2, "block")
+ 
+```
+
+
+Model with varying intercepts on actor and block
+========================================================
+
+```{r, warning=F}
+
+compare(m12.4, m12.5)
+ 
+```
+
+
+
+Model with varying intercepts on actor and block
+========================================================
+
+- posterior distribution for sigma_block ended up close to zero
+
+- each of the a_block parameters is strongly shrunk towards zero; they are relatively inflexible
+
+- a_actor parameters are shunk towards zero much less, because estimated variation across actors is much larger, resulting in less shrinkage
+
+- each of the a_actor parameters contributes much more to the pWAIC value
+
+- difference in WAIC between the models is small; block parameters have been shrunk so much towards zero that they do very little work to the model
+
+- whether we include block or not hardly matters 
+
+
+
+Multilevel posterior predictions
+========================================================
+
+
+- robust way to discover mistakes is to compare the sample to the posterior predictions of a fit model
+
+- exploring implied posterior predictions helps to understand complex models
+
+- another role for constructing implied predictions is in computing informations criteria, like DIC and WAIC, they provide simple estimates of out-of-sample model accuracy; provide rough measure of a model's flexibility and overfitting risk
+
+
+
+Posterior predictions for same cluster
+========================================================
+
+- when working with same clusters as to fit a model, varying intercepts are just parameters
+
+- trick is to ensure you use the right intercept for each case in the data (link and sim do this automatically)
+
+- chimpanzees data: 7 unique actors (clusters), the varying intercept model, m12.4, estimated an intercept for each and two parameters to describe the mean and standard deviation of the population of actors
+
+- construct posterior predictions, using the automated link approach and from scratch
+
+- can't expect the posterior predictive distribution to match the raw data, even when the model worked correctly, because partial pooling shrinkes estimates towards the grand mean
+
+
+
+computing and plotting posterior predictions for actor 2
+========================================================
+
+```{r, warning=F}
+
+chimp <- 2
+d.pred <- list(
+  prosoc_left = c(0,1,0,1),  #right/left/right/left
+  condition = c(0,0,1,1),    #control/control/partner/partner
+  actor = rep(chimp, 4)
+)
+
+link.m12.4 <- link(m12.4, data = d.pred)
+
+ 
+```
+
+computing and plotting posterior predictions for actor 2
+========================================================
+
+```{r, warning=F}
+pred.p <- apply(link.m12.4, 2, mean)
+pred.p.PI <- apply(link.m12.4, 2, PI)
+pred.p
+```
+
+
+
+
+computing and plotting posterior predictions for actor 2
+========================================================
+
+```{r, warning=F}
+#samples from the posterior: varying intercepts will be a matrix of samples
+post <- extract.samples(m12.4)
+
+#to construct posterior predictions, we build our own link function
+p.link <- function(prosoc_left, condition, actor){
+  logodds <- with(post,
+                  a + a_actor[, actor] + (bp + bpC * condition) * prosoc_left)
+  return(logistic(logodds))
+}
+
+
+```
+
+
+computing and plotting posterior predictions for actor 2
+========================================================
+
+```{r, warning=F}
+
+#compute predictions
+prosoc_left <- c(0,1,0,1)
+condition <- c(0,0,1,1)
+pred.raw <- sapply(1:4, function(i) p.link(prosoc_left[i], condition[i], 2))
+pred.p <- apply(pred.raw, 2, mean)
+pred.p.PI <- apply(pred.raw, 2, PI)
+pred.p
+```
+
+
+
+
+Posterior predictions for new cluster
+========================================================
+
+- we'd like to make inferences about the whole species, not the seven individuals; so individual actor intercepts aren't of interest, but the distribution of them is
+
+- one way to grasp task of construction posterior predictions for new clusters is to imagine leaving out one cluster when fitting the model to the data
+
+
+
+
+Posterior predictions for new cluster
+========================================================
+
+- for example leave out actor 7 when fitting the model
+
+- to assess the model's accuracy for predicting actor 7's behavior we can't use any of the $a\_actor$ parameter estimates, because they apply to other individuals
+
+- use $a$ and $sigma\_actor$ paramters, because they describe the population of actors
+
+- construct posterior predictions for an unobserved average actor ("average" means an individual chimpanzee with an intercept at $a(\alpha)$, the population mean)
+
+- this implies a varying intercept of zero
+
+-since there is uncertainty about the population mean, there is still uncertainty about this average individuals's intercept
+
+
+
+Posterior predictions for new cluster
+========================================================
+
+```{r, warning=F}
+
+d.pred <- list(
+  prosoc_left = c(0,1,0,1),
+  condition = c(0,0,1,1),
+  actor = rep(2,4)           #placeholder
+)
+
+a_actor_zeros <- matrix(0, 1000, 7)
+
+link.m12.4 <- link(m12.4, n = 1000, data = d.pred, replace = list(a_actor = a_actor_zeros))
+
+
+```
+
+Posterior predictions for new cluster
+========================================================
+
+```{r, warning=F, echo=F}
+pred.p.mean <- apply(link.m12.4, 2, mean)
+pred.p.PI <- apply(link.m12.4, 2, PI, prob = 0.8)
+
+plot(0, 0, type = "n", xlab = "prosoc_left/condition", ylab = "proportion pulled left", ylim = c(0,1), xaxt = "n", xlim = c(1,4))
+axis(1, at = 1:4, labels = c("0/0", "1/0", "0/1", "1/1"))
+lines(1:4, pred.p.mean)
+shade(pred.p.PI, 1:4)
+```
+
+
+Posterior predictions for new cluster
+========================================================
+
+- to show variation among actors, we need to use $sigma\_actor$
+
+- we will simulate a matrix of new varying intercepts from a Gaussian distribution defined by the adaptive prior in the model: $$\alpha_{ACTOR} \sim Normal(0, \sigma_{ACTOR})$$
+
+- once we have samples for $\sigma_{ACTOR}$, we can simulate new actor intercepts from this distribution
+
+
+```{r, warning=F}
+post <- extract.samples(m12.4)
+a_actor_sims <- rnorm(7000, 0, post$sigma_actor)
+a_actor_sims <- matrix(a_actor_sims, 1000, 7)
+link.m12.4 <- link(m12.4, n = 1000, data = d.pred, replace = list(a_actor = a_actor_sims))
+```
+
+
+
+Posterior predictions for new cluster
+========================================================
+
+```{r, warning=F, echo=F}
+pred.p.mean <- apply(link.m12.4, 2, mean)
+pred.p.PI <- apply(link.m12.4, 2, PI, prob = 0.8)
+
+plot(0, 0, type = "n", xlab = "prosoc_left/condition", ylab = "proportion pulled left", ylim = c(0,1), xaxt = "n", xlim = c(1,4))
+axis(1, at = 1:4, labels = c("0/0", "1/0", "0/1", "1/1"))
+lines(1:4, pred.p.mean)
+shade(pred.p.PI, 1:4)
+```
+
+
+Posterior predictions for new cluster
+========================================================
+
+- these posterior predictions are marginal of actor, which means they average over the uncertainty among actors
+
+- plot of average actor just set the actor to the average, ignoring variation among actors
+
+- predictions for an average actor help to visualize the impact of treatment
+
+- predictions that are marginal of actor illustrate how variable different chimpanzees are
+
+- plot that displays both the treatment effect and the variation among actors
+
+- simulate a series of new actors in each of the four treatments
+
+
+
+Posterior predictions for new cluster
+========================================================
+
+- write a new function that simulates a new actor from the estimated population of actors and then computes probabilites of pulling the left lever for each of the four treatments
+
+- simulations will not average over uncertainty in the posterior
+
+- get uncertainty in the plot by using multiple simulations, each with different sample from the posterior
+
+
+
+========================================================
+
+```{r, warning=F}
+post <- extract.samples(m12.4)
+sim.actor <- function(i){
+  sim_a_actor <- rnorm(1, 0, post$sigma_actor[i])
+  P <- c(0, 1, 0, 1)
+  C <- c(0, 0, 1, 1)
+  p <- logistic(
+    post$a[i] + sim_a_actor + (post$bp[i] + post$bpC[i]*C)*P
+  )
+  return(p)
+}
+
+```
+
+
+========================================================
+
+```{r, warning=F, echo=F}
+plot(0, 0, type = "n", xlab = "prosoc_left/condition", ylab = "proportion pulled left", ylim = c(0,1), xaxt = "n", xlim = c(1,4))
+axis(1, at = 1:4, labels = c("0/0", "1/0", "0/1", "1/1"))
+
+for(i in 1:50)lines(1:4, sim.actor(i), col=col.alpha("black", 0.5))
+
+```
+
+
+Focus and multilevel prediction
+========================================================
+
+- multilevel models contain parameter with different focus
+
+- focus means which level of the model the parameter makes direct predictions for
+
+- parameters that describe the population of clusters, such as $\alpha$ and $\sigma_{ACTOR}$ in m12.4, do not influence prediction directly
+
+- they are often called hyperparameters, as the are parameters for parameters
+
+- hyperparameters had their effects during estimation, by shrinking the varying effect parameters towards a common mean
+
+- prediction focus here is on the top level of parameters
+
+
+Focus and multilevel prediction
+========================================================
+
+- prediction focus on top level of parameters, when forecasting a new observation for a cluster that was present in the sample
+
+- for example, if we want to predict what chimpanzee 2 will do in the next experiment, we should probably bet she'll pull the left lever, because her varying intercept was very large
+
+
+Focus and multilevel prediction
+========================================================
+
+- when we want to forecast for some new cluster that was not present in the sample, then we need hyperparameters
+
+- hyperparameters tell us how to forecast a new cluster, by generating a distribution of new per-cluster intercepts
+
+- when varying effects are used to model over-dispersion, we also need hyperparameters
+
+- we need to simulate intercepts in order to account for the over-dispersion
+
+
+
+
+Oceanic societies
+========================================================
+
+- adding a varying intercept to each society
+
+$$ T_i \sim Poisson(\mu_i)$$
+
+$$ logit(\mu_i) = \alpha + \alpha_{SOCIETY[i]} + \beta_PlogP_i$$
+
+$$ \alpha \sim Normal(0,10)$$
+
+$$ \beta_P \sim Normal(0,1)$$
+
+$$ \alpha_{SOCIETY} \sim Normal(0,\sigma_{SOCIETY})$$
+
+$$ \sigma_{SOCIETY} \sim HalfCauchy(0,1)$$
+
+
+========================================================
+
+- T is total_tools, P is population, i indexes each society 
+
+- varying intercept model, but with a varying intercept for each observation
+
+- $\sigma_{SOCIETY}$ is an estimate of the over-dispersion among societies
+
+- varying intercepts $\alpha_{SOCIETY}$ are residuals for each society
+
+- by estimating the distribution of the residuals, we get an estimate of the excess variation, relative to the Poisson expectation
+
+
+
+
+
+fit over-dispersion Poisson model
+========================================================
+
+
+```{r, warning=F}
+
+data(Kline)
+d <- Kline
+d$logpop <- log(d$population)
+d$society <- 1:10
+
+# m12.6 <- map2stan(
+#   alist(
+#     total_tools ~ dpois(mu),
+#     log(mu) <- a + a_society[society] + bp*logpop,
+#     a ~ dnorm(0, 10),
+#     bp ~ dnorm(0, 1),
+#     a_society[society] ~ dnorm(0, sigma_society),
+#     sigma_society ~ dcauchy(0,1)
+#   ),
+#   data = d, iter=4000, chains = 3
+# )
+
+load("m126.Rdata")
+
+ 
+```
+
+```{r, warning=F, include=FALSE}
+
+post <- extract.samples(m12.6)
+d.pred <- list(
+  logpop = seq(from = 6, to = 14, length.out = 30),
+  society = rep(1, 30)
+)
+a_society_sims <- rnorm(20000, 0, post$sigma_society)
+a_society_sims <- matrix(a_society_sims, 2000, 10)
+link.m12.6 <- link(m12.6, n = 2000, data = d.pred, replace = list(a_society = a_society_sims))
+
+
+```
+
+
+
+fit over-dispersion Poisson model
+========================================================
+
+```{r, warning=F, echo=F}
+
+plot(d$logpop, d$total_tools, col = rangi2, pch = 16, xlab = "log population", ylab = "total_tools")
+
+#plot posterior mean
+mu.median <- apply(link.m12.6, 2, median)
+lines(d.pred$logpop, mu.median)
+
+#plot 97%, 89%, 67% intervals
+mu.PI <- apply(link.m12.6, 2, PI, prob = 0.97)
+shade(mu.PI, d.pred$logpop)
+
+mu.PI <- apply(link.m12.6, 2, PI, prob = 0.89)
+shade(mu.PI, d.pred$logpop)
+
+mu.PI <- apply(link.m12.6, 2, PI, prob = 0.67)
+shade(mu.PI, d.pred$logpop)
+
+```
+
+========================================================
+
+- posterior predictions for the over-dispersed Poisson model
+
+- envelope of predictions is a lot wider than in Chapter 10 
+
+- consequence of the varying intercepts
+
+
+Exercises
+========================================================
+
+- E1: Which of the following priors will produce more shrinkage in the estimates?
+
+(a) $\alpha_{TANK} \sim Normal(0,1)$
+(b) $\alpha_{TANK} \sim Normal(0,2)$
+
+- E2: Make the following model into a multilevel model.
+
+$$ y_i \sim Binomial(1, p_i)$$
+
+$$ logit(p_i) = \alpha_{GROUP[i]} + \beta x_i$$
+
+$$ \alpha_{GROUP} \sim Normal(0,10)$$
+
+$$ \beta \sim Normal(0,1)$$
+
+
+Exercises
+========================================================
+
+$$ y_i \sim Binomial(1, p_i)$$
+
+$$ logit(p_i) = \alpha_{GROUP[i]} + \beta x_i$$
+
+$$ \alpha_{GROUP} \sim Normal(\alpha,\sigma)$$
+
+$$ \beta \sim Normal(0,1)$$
+
+$$ \alpha \sim Normal(0,1)$$
+
+$$ \sigma \sim HalfCauchy(0,1)$$
+
+
+
+Exercises
+========================================================
+
+- E4: Write an example mathematical model formula for a Poisson regression with varying intercepts
+
+
+$$ y_i \sim Poisson(\mu_i)$$
+
+$$ log(\mu_i) = \alpha_{GROUP[i]} + \beta x_i$$
+
+$$ \alpha_{GROUP} \sim Normal(\alpha,\sigma)$$
+
+$$ \beta \sim Normal(0,1)$$
+
+$$ \alpha \sim Normal(0,1)$$
+
+$$ \sigma \sim HalfCauchy(0,1)$$
+
+
+
+
+Exercises
+========================================================
+
+M1: Add the predation and size treatment variables to the varying intercepts model of the frog data. Consider models with either main effect alone, both main effects, as well as a model including both and their interaction. Instead of focusing on inferences about these two predictor variables, focus on the inferred variation across tanks. Explain why it changes as it does across models.
+
+Exercises
+========================================================
+
+```{r, warning=F}
+
+data(reedfrogs)
+d <- reedfrogs
+
+# make the tank cluster variable
+d$tank <- 1:nrow(d)
+d$predation <- ifelse(test = d$pred == "pred", yes = 1, no = 0)
+d$frogsize <- ifelse(test = d$size == "big", yes = 1, no = 0)
+```
+
+Exercises
+========================================================
+```{r, warning=F}
+# fit several models
+# m12M1.predation <- map2stan(
+#   alist(
+#     surv ~ dbinom(density, p) ,
+#     logit(p) <- alpha[tank] + beta_predation*predation,
+#     alpha[tank] ~ dnorm(a, sigma),
+#     a ~ dnorm(0, 10),
+#     sigma ~ dcauchy(0, 1),
+#     beta_predation ~ dnorm(0, 1)
+#   ), data=d )
+
+load("m12predation.Rdata")
+
+```
+
+Exercises
+========================================================
+```{r, warning=F}
+
+# m12M1.size <- map2stan(
+#   alist(
+#     surv ~ dbinom(density, p) ,
+#     logit(p) <- alpha[tank] + beta_frogsize*frogsize,
+#     alpha[tank] ~ dnorm(a, sigma),
+#     a ~ dnorm(0, 10),
+#     sigma ~ dcauchy(0, 1),
+#     beta_frogsize ~ dnorm(0, 1)
+#   ), data=d )
+
+load("m12size.Rdata")
+
+```
+
+Exercises
+========================================================
+```{r, warning=F}
+
+# m12M1.both <- map2stan(
+#   alist(
+#     surv ~ dbinom(density, p) ,
+#     logit(p) <- alpha[tank] + beta_predation*predation + beta_frogsize*frogsize,
+#     alpha[tank] ~ dnorm(a, sigma),
+#     a ~ dnorm(0, 10),
+#     sigma ~ dcauchy(0, 1),
+#     c(beta_predation, beta_frogsize) ~ dnorm(0, 1)
+#   ), data=d )
+
+load("m12both.Rdata")
+
+```
+
+Exercises
+========================================================
+```{r, warning=F}
+
+# m12M1.interaction <- map2stan(
+#   alist(
+#     surv ~ dbinom(density, p) ,
+#     logit(p) <- alpha[tank] + beta_predation*predation + beta_frogsize*frogsize + beta_predation_frogsize*predation*frogsize,
+#     alpha[tank] ~ dnorm(a, sigma),
+#     a ~ dnorm(0, 10),
+#     sigma ~ dcauchy(0, 1),
+#     c(beta_predation, beta_frogsize, beta_predation_frogsize) ~ dnorm(0, 1)
+#   ), data=d )
+
+load("m12interaction.Rdata")
+
+```
+
+Exercises
+========================================================
+```{r, warning=F, echo=F, fig.width=15, fig.height=10}
+
+# posterior predictive check
+ppc <- function(model, df) {
+  post <- extract.samples(model)
+  # compute median intercept for each tank
+  # also transform to probability with logistic
+  df$propsurv.est <- logistic( apply( X = post$alpha, MARGIN = 2, FUN = median ) )
+  # display raw proportions surviving in each tank
+  plot( df$propsurv , ylim=c(0,1) , pch=16 , xaxt="n" ,
+        xlab="tank" , ylab="proportion survival" , col=rangi2 )
+  axis( 1 , at=c(1,16,32,48) , labels=c(1,16,32,48) )
+  # overlay posterior medians
+  points( df$propsurv.est )
+  # mark posterior median probability across tanks
+  abline( h=logistic(median(post$alpha)) , lty=2 )
+  # draw vertical dividers between tank densities
+  abline( v=16.5 , lwd=0.5 )
+  abline( v=32.5 , lwd=0.5 )
+  text( 8 , 0 , "small tanks" )
+  text( 16+8 , 0 , "medium tanks" )
+  text( 32+8 , 0 , "large tanks" )
+}
+par(mfrow=c(2,1))
+ppc(model = m12M1.predation, df = d)
+title("m12.M1.predation")
+ppc(model = m12M1.size, df = d)
+title("m12.M1.size")
+```
+
+Exercises
+========================================================
+```{r, warning=F, echo=F, fig.width=15, fig.height=10}
+
+par(mfrow=c(2,1))
+ppc(model = m12M1.both, df = d)
+title("m12.M1.both")
+ppc(model = m12M1.interaction, df = d)
+title("m12.M1.interaction")
+# As we add more predictor variables, the variation amongst tanks decreases. This is because predictor variables, by definition,
+
+# "explain away" the variance, leaving less to be captured by `sigma` itself.
+
+```
+
+Exercises
+========================================================
+
+M2: Compare the models you fit just above, using WAIC.
+```{r, warning=F}
+
+compare(m12M1.predation, m12M1.size, m12M1.both, m12M1.interaction)
+
+```
+
+Exercises
+========================================================
+
+M3: Re-estimate the basic Reed frog varying intercept model, but now using a Cauchy distribution in place of the Gaussian distribution for the varying intercepts.
+
+```{r, warning=F}
+
+
+# m12M3.alpha.cauchy <- map2stan(
+#   alist(
+#     surv ~ dbinom(density, p) ,
+#     logit(p) <- alpha[tank],
+#     alpha[tank] ~ dcauchy(m, shape),
+#     m ~ dnorm(0, 10),
+#     shape ~ dcauchy(0, 1)
+#   ), data=d )
+
+load("m12M3cauchy.Rdata")
+
+```
+
+Exercises
+========================================================
+```{r, warning=F}
+
+# m12.2 <- map2stan(
+#   alist(
+#     surv ~ dbinom(density, p),
+#     logit(p) <- a_tank[tank],
+#     a_tank[tank] ~ dnorm(a,sigma),
+#     a ~ dnorm(0,1),
+#     sigma ~ dcauchy(0,1)
+#   ),
+#   data = d, iter=4000, chains=4
+# ) 
+
+```
+
+Exercises
+========================================================
+
+```{r, warning=F, echo=F}
+# plot with author's code
+
+post_normal <- extract.samples(m12.2)
+
+alpha_tank_normal <- apply(X = post_normal$a_tank, MARGIN = 2, FUN = mean)
+
+post_cauchy <- extract.samples(m12M3.alpha.cauchy)
+
+alpha_tank_cauchy <- apply(X = post_cauchy$alpha, MARGIN = 2, FUN = mean)
+
+plot( alpha_tank_normal , alpha_tank_cauchy , pch=16 , col=rangi2 ,
+
+      xlab="Gaussian prior" , ylab="Cauchy prior" )
+
+abline(a=0, b=1, lty=2)
+
+
+
+# The Cauchy means are bigger in a few cases, as Cauchy priors have the longer tail and therefore more plausible values. As such, while the shrinkage
+
+# of the model does pull these extreme values (all tadpoles survived in these tanks, i.e. a survival proportion of 100%) in from infinity,
+
+# the Gaussian prior does this moreso than the Cauchy.
+
+```
+
+
+
+
+
+
+Exercises
+========================================================
+
+H1: In 1980, a typical Bengali woman could have 5 or more children in her lifetime. By the year 200, a typical Bengali woman had only 2 or 3. You're going to look at a historical set of data, when contraception was widely available but many families chose not to use it. These data come from the 1988 Bangladesh Fertility Survey. 
+
+```{r, warning=F}
+
+data(bangladesh)
+df <- bangladesh
+head(df)
+#makes variable contiguous
+df$district_id <- as.integer(as.factor(df$district))
+
+```
+
+
+Exercises
+========================================================
+
+```{r, warning=F}
+
+
+# fixed effects model
+# m12H1.fe <- map2stan(
+#   alist(
+#     use.contraception ~ dbinom(1, p) ,
+#     logit(p) <- a + beta*district_id,
+#     a ~ dnorm(0, 10),
+#     beta ~ dnorm(0,1)
+#   ), data=df )
+
+```
+
+```{r, warning=F}
+
+
+# multilevel model
+# m12H1.ml <- map2stan(
+#   alist(
+#     use.contraception ~ dbinom(1, p) ,
+#     logit(p) <- a + alpha[district_id],
+#     alpha[district_id] ~ dnorm(0, sigma),
+#     a ~ dnorm(0, 10),
+#     sigma ~ dcauchy(0, 1)
+#   ), data=df )
+
+```
+
+
+
+
