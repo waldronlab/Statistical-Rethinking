@@ -1,28 +1,345 @@
-Untitled
+Multilevel Models - Adventures in Covariance
 ========================================================
-author: 
-date: 
+author: Klemens Kurtz
+date: 2018-06-30
 autosize: true
+font-family: 'Trebuchet MS'
 
-First Slide
+McElreath, R. *Statistical Rethinking*. (CRC Press/Taylor & Francis Group, 2016).
+
+Back to Chapter 12
+========================================================
+- 12E1. Which of the following priors will produce more shrinkage in the estimates?
+ - (a) $\alpha_{tank} \sim Normal(0, 1)$
+ - (b) $\alpha_{tank} \sim Normal(0, 2)$
+
+I changed my mind: (a) should be more conservative than (b) because $\sigma_a < \sigma_b$. Therefore (a) should produce more shrinkage.
+
+
+
+Kinds of varying effects
+========================================================
+- Varying intercepts: means differ by cluster
+- Varying slopes: effects of predictors vary by cluster
+- Any parameter can be made into a varying effect
+  - (1) split into vector of parameters by cluster
+  - (2) define population distribution
+
+***
+<img src="picsAdvCov/interceptsSlopes_1.PNG"; width=400 height=450 pos=>
+
+
+Varying slopes
+========================================================
+- Why varying slopes?
+  - drugs affect people differently
+  - after school programs don´t work for everybody
+  - variation is important, whether for intervention or inference
+- Average effect misleading?
+
+
+Coffee robot
+========================================================
+- Robot programmed to record wait time
+- Visit in the morning and afternoon
+- Intercepts: average morning wait time
+- Slopes: avg difference between afternoon and morning
+- Are intercepts and slopes related?
+
+***
+<img src="picsAdvCov/cafeRobot2.PNG"; width=500 height=650 pos=>
+
+
+Population of Cafes
 ========================================================
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
+<div style="text-align:center;"><img src="picsAdvCov/cafePopul3.PNG"; width=600 height=600 pos=>
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
 
-Slide With Code
+Population of Cafes
+========================================================
+- 2-dimensional Gaussian distribution
+  - vector of means
+  - variance-covariance matrix
+
+***
+<div style="text-align:center;"><img src="picsAdvCov/varCovM4.PNG"; width=600 height=600 pos=>
+
+
+Simulated Cafes
+========================================================
+<img src="picsAdvCov/simCafe5.PNG"; width=600 height=600 pos=>
+
+***
+- 20 Cafes
+- visited 5 days morning and afternoon
+- 200 observations
+
+Varying slopes model
+========================================================
+$$
+W_i \sim Normal(\mu_i, \sigma)\\
+\mu_i = \alpha_{Cafe[i]} + {\beta_{Cafe[i]}}M_i\\
+
+\begin{pmatrix}
+\alpha_{Cafe} \\
+\beta_{Cafe}
+\end{pmatrix}
+\sim MVNormal \left(
+\begin{bmatrix}
+\alpha \\
+\beta
+\end{bmatrix}
+, S \right)
+\\
+S =
+\begin{pmatrix}
+      \sigma_{\alpha} & 0 \\
+      0 & \sigma_{\beta}
+\end{pmatrix}
+R
+\begin{pmatrix}
+      \sigma_{\alpha} & 0 \\
+      0 & \sigma_{\beta}
+\end{pmatrix}
+\\
+\alpha \sim Normal(0, 10)\\
+\beta \sim  Normal(0, 10)\\
+\sigma \sim HalfCauchy(0, 1)\\
+\sigma_{\alpha} \sim HalfCauchy(0, 1)\\
+\sigma_{\beta} \sim HalfCauchy(0, 1)\\
+R \sim LKJcorr(2)
+$$
+
+
+Covariance matrix
+========================================================
+- Specify the prior
+
+$$
+S =
+
+\begin{pmatrix}
+      \sigma_{\alpha}^2 & \rho \sigma_{\alpha} \sigma_{\beta} \\
+      \rho \sigma_{\alpha} \sigma_{\beta} & \sigma_{\beta}^2
+\end{pmatrix}
+
+=
+
+\begin{pmatrix}
+      \sigma_{\alpha} & 0 \\
+      0 & \sigma_{\beta}
+\end{pmatrix}
+
+\begin{pmatrix}
+      1 & \rho \\
+      \rho & 1
+\end{pmatrix}
+
+\begin{pmatrix}
+      \sigma_{\alpha} & 0 \\
+      0 & \sigma_{\beta}
+\end{pmatrix}
+
+= SRS\\
+
+$$
+
+$R \sim LKJcorr(eta)$ -> correlation matrix prior
+
+LKJ Correlation prior
+========================================================
+- Lewandowski, Kurowicka and Joe (LKJ) 2009
+- Parameter eta specifies the concentration/dispersion from identity matrix (zero correlation)
+  - eta = 1, uniform correlation matrices
+  - eta > 1, stomps on extreme correlation
+  - eta < 1, elevates extreme correlation
+
+***
+<img src="picsAdvCov/eta5.PNG"; width=400 height=600 pos=>
+
+
+Varying slopes estimate
 ========================================================
 
-```{r}
-summary(cars)
+```{r, eval=FALSE, message=FALSE, warning=FALSE, include=T}
+m13.1 <- map2stan(
+  alist(
+    wait <- dnorm(mu, sigma),
+    mu <- a_cafe[cafe] + b_cafe[cafe]*afternoon,
+    c(a_cafe, b_cafe)[cafe] ~ dmvnorm2(c(a, b), sigma_cafe, Rho),
+    a ~ dnorm(0, 10),
+    b ~ dnorm(0, 10),
+    sigma_cafe ~ dcauchy(0, 2),
+    sigma ~ dcauchy(0, 2),
+    Rho ~ dlkjcorr(2)
+  ),
+  data = d,
+  iter = 5000, warmup = 2000, chains = 2
+)
 ```
 
-Slide With Plot
+
+Posterior shrinkage and correlation
 ========================================================
 
-```{r, echo=FALSE}
-plot(cars)
+```{r, eval=FALSE, message=FALSE, warning=FALSE, include=T}
+post <- extract.samples(m13.1)
+dens(post$Rho[,1,2])
 ```
+
+<div style="text-align:center;"><img src="picsAdvCov/shrinkPost6.PNG"; width=1150 height=500 pos=>
+
+
+Multi-dimensional shrinkage
+========================================================
+- Joint distribution of varying effects pools information across intercepts and slopes
+- Correlation btw effects => shrinkage in one dimension induces shrinkage in others
+- Improved accuracy, just like varying intercepts
+
+***
+<img src="picsAdvCov/mds7.PNG"; width=600 height=600 pos=>
+
+
+Cross-classified varying slopes
+========================================================
+- More slopes: Higher dimension covariance matrix
+- More clusters: More than one multivariate prior
+- Reconsider chimpanze data
+
+<div style="text-align:center;"><img src="picsAdvCov/crossVal8.PNG"; width=700 height=450 pos=>
+
+
+Cross-classified varying slopes
+========================================================
+- Need two multivariate priors: actors and blocks
+- Each 3-dimensional with own covariance matrix
+
+<div style="text-align:center;"><img src="picsAdvCov/crossVal9.PNG"; width=800 height=400 pos=>
+
+
+
+========================================================
+<div style="text-align:center;"><img src="picsAdvCov/m13.6.PNG"; width=1200 height=600 pos=>
+
+
+Cross-classified varying slopes
+========================================================
+- 54 parameters
+- WAIC says pWAIC ~ 18 (sigmas are small)
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE, include=T}
+precis( m13.6NC , depth=2 , pars=c("sigma_actor","sigma_block") )
+```
+
+<div style="text-align:center;"><img src="picsAdvCov/m13.6NC.PNG"; width=1000 height=250 pos=>
+
+
+
+Non-centered form
+========================================================
+- dmvnormNC usually samples more efficiently
+<img src="picsAdvCov/m13.6nc_mod.PNG"; width=1200 height=600 pos=>
+
+
+Non-centered form
+========================================================
+- Goal: Every dimension (parameter) in posterior shall be $Normal(0,1)$
+- Once you start embedding parameters inside prior, this is hard - $Normal(\alpha, \sigma)$ e.g.
+- Solution: Factor things out of the prior
+
+$$
+y \sim Normal(\mu, \sigma)\\
+y = \mu + z\sigma\\
+z \sim Normal(0, 1)
+$$
+
+
+Non-centered form
+========================================================
+- Simple case: Varying intercepts
+- Factor the mean and sigma out of prior
+- Centered form:
+```{r, eval=FALSE, message=FALSE, warning=FALSE, include=T}
+mu <- a_actor[actor] + {stuff}
+# Prior
+a_actor[actor] ~ normal(a, sigma)
+```
+
+- Non-centered form:
+```{r, eval=FALSE, message=FALSE, warning=FALSE, include=T}
+mu <- a + z_actor[actor]*sigma + {stuff}
+# Prior
+z_actor[actor] ~ normal(0, 1)
+```
+
+
+Non-centered form
+========================================================
+- What about varying slopes?
+- Now need to factor correlation matrix out of prior and smuggle into linear model
+- Can be done: Cholesky
+
+***
+<img src="picsAdvCov/cholesky.jpg"; width=400 height=550 pos=>
+
+
+Non-centered form
+========================================================
+<img src="picsAdvCov/cholesky2.PNG"; width=1000 height=650 pos=>
+
+
+Continous categories
+========================================================
+- Tradional clusters discrete, unordered => every category equally different from all others (in prior)
+- Continous dimensions of difference:
+  - Age, income, location, social network distance, ...
+  - No obvious cut points in continuum, but close values share common exposures/covariates/interactions
+- We want to exploit pooling in these cases as well
+- Common approach: Gaussian process regression
+
+
+GP e.g.: Spatial autocorrelation
+========================================================
+- Relationship between tool complexity and population
+- Close societies may share tools because of contact or similar geology/ecology
+- Use space as proxy
+- Spatial autocorrelation
+
+***
+<img src="picsAdvCov/spatial1.PNG"; width=600 height=700 pos=>
+
+
+GP e.g.: Spatial autocorrelation
+========================================================
+
+<img src="picsAdvCov/cont1.PNG"; width=800 height=700 pos=>
+
+
+Modeling covariance
+========================================================
+
+<img src="picsAdvCov/cont2.PNG"; width=900 height=500 pos=>
+
+
+Modeling covariance
+========================================================
+
+<img src="picsAdvCov/cont3.PNG"; width=900 height=500 pos=>
+
+
+Results
+========================================================
+
+<img src="picsAdvCov/cont4.PNG"; width=1200 height=500 pos=>
+
+
+
+
+
+
+
+
+
+
+
