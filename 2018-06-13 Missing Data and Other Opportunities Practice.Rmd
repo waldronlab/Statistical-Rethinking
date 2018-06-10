@@ -1,25 +1,413 @@
 ---
-title: "untitled"
-author: "unknown"
-date: "May 30, 2018"
-output:
-  html_document:
-    fig_height: 7
-    fig_retina: NULL
-    code_folding: "hide"
+title: "Chapter14"
+author: "Alexander Klettner"
+date: "13 Juni 2018"
+output: html_document
 ---
 
-## `knitr` Options
+
+
+# Missing Data and other opportunities:
+```
+## The easy ones:
+
+### 14E1:
+
+Rewrite the Oceanic tools model (from chapter 10) below, 
+so that it assumes meassured error on the log population
+sizes of each society.
+
+                    
+                    T_i ~ Poisson(µ_i)
+                    log(µ_i) = a + b*log(P_i)
+                    a ~ Normal(0,10)
+                    b ~ Normal(0,1)
+                    
+```
+
+```
+### Solution:
+
+                    T_i ~ Poisson(µ_i)
+                    log(µ_i) = a + b*log(P_i)_est
+                    log(P_i)_obs ~ Normal(log(P_i)_est, s_P)
+                    a ~ Normal(0,10)
+                    b ~ Normal(0,1)
+                    s_P ~ HalfCauchy(0,1)
+```
+
+```
+### 14E2:
+
+Rewrite the same model so that it allows imputation of missing values for log population.
+There aren’t any missing values in the variable, 
+but you can still write down a model formula that
+would imply imputation, if any values were missing.
+```
+
+```
+### Solution:
+
+                    T_i ~ Poisson(µ_i)
+                    log(µ_i) = a + b*log(P_i)
+                    log(P_i) ~ Normal(l,s_P)
+                    a ~ Normal(0,10)
+                    b ~ Normal(0,1)
+                    l ~ Normal(8, 3)
+                    s_P ~ HalfCauchy(0, 2)
+
+```
+
+```
+## The medium exercises:
+
+### 14M1:
+
+Using the mathematical form of the imputation model in the chapter, explain what is being
+assumed about how the missing values were generated.
+
+```
+```
+### Solution:
+
+It is being assumed that the values have fixed variance and were randomly missing.
++ Normal distribution of missing values.
+
+```
+```
+### 14M2:
+
+In earlier chapters, we threw away cases from the primate milk data, so we could use the
+neocortex variable. 
+Now repeat the WAIC model comparison example from Chapter 6, but use imputation on the neocortex variable so that you can include all of the cases in the original data.
+The simplest form of imputation is acceptable. How are the model comparison results 
+affected by being able to include all of the cases?
+```
+```
+```{r}
+
+
+library(rethinking)
+data(milk)
+d <- milk
+d$neocortex.prop <- d$neocortex.perc / 100
+d$logmass <- log(d$mass)
+
+
+# prep data 
+data_list <- list(
+  kcal = d$kcal.per.g,
+  neocortex = d$neocortex.prop,
+  logmass = d$logmass )
+# fit model
+m14.3 <- map2stan(
+  alist(
+    kcal ~ dnorm(mu,sigma),
+    mu <- a + bN*neocortex + bM*logmass,
+    neocortex ~ dnorm(nu,sigma_N),
+    a ~ dnorm(0,100),
+    c(bN,bM) ~ dnorm(0,10),
+    nu ~ dnorm(0.5,1),
+    sigma_N ~ dcauchy(0,1),
+    sigma ~ dcauchy(0,1)
+  ) ,
+  data=data_list , iter=1e4 , chains=2 )
+
+precis(m14.3,depth=2);
+
+
+# prep data
+dcc <- d[ complete.cases(d$neocortex.prop) , ]
+data_list_cc <- list(
+  kcal = dcc$kcal.per.g,
+  neocortex = dcc$neocortex.prop,
+  logmass = dcc$logmass )
+# fit model
+m14.3cc <- map2stan(
+  alist(
+    kcal ~ dnorm(mu,sigma),
+    mu <- a + bN*neocortex + bM*logmass,
+    a ~ dnorm(0,100),
+    c(bN,bM) ~ dnorm(0,10),
+    sigma ~ dcauchy(0,1)
+  ) ,
+  data=data_list_cc , iter=1e4 , chains=2 );
+precis(m14.3cc)
+
+
+compare(m14.3, m14.3cc)
+
+```
+```
+
+```
+### 14M3:
+
+Repeat the divorce data measurement error models, but this time double the standard errors.
+Can you explain how doubling the standard errors impacts inference?
+```
+
+```
+### Solution:
 
 ```{r}
-knitr::opts_chunk$set(fig.align = "center")
-knitr::opts_chunk$set(results = "hold")
+
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+
+dlist <- list(
+  div_obs=d$Divorce,
+  div_sd=2 * d$Divorce.SE,
+  R=d$Marriage,
+  A=d$MedianAgeMarriage
+)
+m14.2 <- map2stan(
+  alist(
+    div_est ~ dnorm(mu,sigma),
+    mu <- a + bA*A + bR*R,
+    div_obs ~ dnorm(div_est,div_sd),
+    a ~ dnorm(0,10),
+    bA ~ dnorm(0,10),
+    bR ~ dnorm(0,10),
+    sigma ~ dcauchy(0,2.5)
+  ) ,
+  data=dlist ,
+  start=list(div_est=dlist$div_obs) ,
+  WAIC=FALSE , iter=1500 , warmup=300 , chains=2 , cores=2 ,
+  control=list(adapt_delta=0.95) );
+
+dlist <- list(
+  div_obs=d$Divorce,
+  div_sd=2 * d$Divorce.SE,
+  mar_obs=d$Marriage,
+  mar_sd=2 * d$Marriage.SE,
+  A=d$MedianAgeMarriage )
+
+m14.2double <- map2stan(
+  alist(
+    div_est ~ dnorm(mu,sigma),
+    mu <- a + bA*A + bR*mar_est[i],
+    div_obs ~ dnorm(div_est,div_sd),
+    mar_obs ~ dnorm(mar_est,mar_sd),
+    a ~ dnorm(0,10),
+    bA ~ dnorm(0,10),
+    bR ~ dnorm(0,10),
+    sigma ~ dcauchy(0,2.5)
+  ) ,
+  data=dlist ,
+  start=list(div_est=dlist$div_obs,mar_est=dlist$mar_obs) ,
+  WAIC=FALSE , iter=1500 , warmup=300 , chains=2 , cores=2 ,
+  control=list(adapt_delta=0.95) );
+
+precis(m14.2)
+precis(m14.2double)
+compare(m14.2,m14.2double)
 ```
 
-## `R` Packages
-
-```{r, message=FALSE}
-library(readr)
+The WAIC increases --> worse estimated out-of-sample deviance
+pWAIC increases, so the model is more flexible on fitting the sample
+The probability that the model with doubled standard errors will make better predictions on new data then the original one is 0. (weight)
+Worst case: WAIC + SE (m14.2) & WAIC - SE (m14.2double) leads still to a better WAIC for m14.2
 ```
 
-## Pratice
+```
+## The hard exercises:
+
+### 14H1:
+The data in data(elephants) are counts of matings observed for bull elephants of differing
+ages. There is a strong positive relationship between age and matings. However, age is not always
+assessed accurately. 
+First, fit a Poisson model predicting MATINGS with AGE as a predictor. 
+Second, assume that the observed AGE values are uncertain and have a standard error of plus minus 5 years.
+Re-estimate the relationship between MATINGS and AGE, incorporating this measurement error.
+Compare the inferences of the two models.
+```
+```
+### Solution:
+```{r}
+
+library(rethinking)
+
+
+data(elephants)
+d<-elephants
+View(d)
+
+
+dlist <- list(
+  M=d$MATINGS,
+  age=d$AGE
+)
+m14H1.1 <- map2stan(
+    alist(
+      M~dpois(mu),
+      log(mu)<- a + b*age,
+      a~ dnorm(0,1),
+      b ~ dnorm(0,1)
+    ), data = dlist, control=list(adapt_delta=0.95), iter=5000,WAIC = FALSE, warmup=1000, chains=2);
+
+
+dlist1 <- list(
+  M=d$MATINGS,
+  age_obs=d$AGE
+)
+
+m14H1.2 <- map2stan(
+  alist(
+    M~dpois(mu),
+    log(mu)<- a + b*age_est[i],
+    age_obs ~ dnorm(age_est,5),
+    a~ dnorm(0,1),
+    b ~ dnorm(0,1)
+  ), data = dlist1, 
+  start=list(age_est=dlist1$age_obs), iter = 5000,WAIC = FALSE, warmup = 1000, chains = 2,
+  control=list(adapt_delta=0.95)
+);
+
+precis(m14H1.1)
+precis(m14H1.2)
+
+```
+No sensible difference in the relationship was detected.
+This is because the measurement error is SYMMETRIC and HOMOGENEOUS for all ages.
+
+```
+
+```
+### 14H2:
+
+Repeat the model fitting problem above, now increasing the assumed standard error on AGE.
+How large does the standard error have to get before the posterior mean for the coefficient on AGE
+reaches zero?
+
+```
+```
+### Solution:
+
+```{r, eval=F}
+m14H1.3 <- map2stan(
+  alist(
+    M~dpois(mu),
+    log(mu)<- a + b*age_est[i],
+    age_obs ~ dnorm(age_est,101.23),
+    a ~ dnorm(0,1),
+    b ~ dnorm(0,1)
+  ), data = dlist1, 
+  start=list(age_est=dlist1$age_obs), WAIC = FALSE, iter = 5000, warmup = 1000, chains = 2,
+  control=list(adapt_delta=0.95)
+)
+
+precis(m14H1.3)
+```
+```
+
+```
+### 14H3:
+
+The fact that information flows in all directions among parameters sometimes leads to rather
+unintuitive conclusions. Here’s an example from missing data imputation, in which imputation of a
+single datum reverses the direction of an inferred relationship. Use these data:
+
+set.seed(100)
+x <- c( rnorm(10) , NA )
+y <- c( rnorm(10,x) , 100 )
+d <- list(x=x,y=y)
+
+These data comprise 11 cases, one of which has a missing predictor value. You can quickly confirm
+that a regression of y on x for only the complete cases indicates a strong positive relationship
+between the two variables. But now fit this model, imputing the one missing value for x:
+
+                        y_i ~ Normal(µ_i, s)
+                        µ_i = a +b*x_i
+                        x_i ~ Normal(0, 1)
+                        a ~ Normal(0, 100)
+                        b ~ Normal(0, 100)  
+                        s ~ HalfCauchy(0, 1)
+                        
+What has happened to the posterior distribution of β? Be sure to inspect the full density. 
+Can you explain the change in inference?
+```
+
+```
+### Solution:
+
+```{r}
+
+library(dplyr)
+set.seed(100)
+x <- c( rnorm(10) , NA )
+y <- c( rnorm(10,x) , 100 )
+d <- data.frame(x=x,y=y) #dataframe is easier to handle
+
+dcc <- d%>% filter(!is.na(x))
+View(dcc)
+
+
+dcclist <- list(
+  y=dcc$y,
+  x=dcc$x
+)
+
+
+
+m14H3.1 <- map2stan(
+  alist(
+    y~dnorm(mu,sigma),
+    mu<- a + b*x,
+    a ~ dnorm(0,100),
+    b ~ dnorm(0,100),
+    sigma ~ dcauchy(0,1)
+  ), data = dcclist
+)
+precis(m14H3.1)
+
+
+
+dlist <- list(
+  x=d$x,
+  y=d$y
+)
+
+m14H3.2 <- map2stan(
+    alist(
+      y ~ dnorm(mu, sigma),
+      mu <- a+b*x,
+      x ~ dnorm(0,1),
+      a ~ dnorm(0,100),
+      b ~ dnorm(0,100),
+      sigma ~ dcauchy(0,1)
+    ), data = dlist, iter = 1e4, chains = 2)
+    
+
+precis(m14H3.2,depth = 2)
+precis(m14H3.1)
+compare(m14H3.1, m14H3.2)
+
+posteriordist1 <- plot(precis(m14H3.1))
+posteriordist2 <- plot(precis(m14H3.2))
+
+
+post1 = extract.samples(m14H3.1)
+post2 = extract.samples(m14H3.2)
+dens(post2$b, ylim = c(0,0.8))
+dens(post1$b, col = rangi2, lwd = 2, add = TRUE)
+
+library(ggplot2)
+
+d2<- d%>%filter(!is.na(x))%>%rbind(c(0.99, 100))
+
+
+d2%>%ggplot(aes(x=x,y=y))+geom_point()+geom_abline()
+reg1<-d2%>%ggplot(aes(x=x,y=y))+geom_point()+geom_smooth(method = "lm")
+
+
+d%>%ggplot(aes(x=x,y=y))+geom_point()+geom_abline()
+reg2<-d%>%ggplot(aes(x=x,y=y))+geom_point()+geom_smooth(method = "lm")+ylim(-50,100)
+
+library(gridExtra)
+
+grid.arrange(reg1,reg2,ncol=2)
+
+```
+The y-value that belongs to the imputed x-value is an outlier. Therefore the mean slope increased from 1.42 to 10.37 and the posterior distribution is wider spread in the model with the imputed value than in the one, where we dropped that one case. The posterior distribution of beta has also two peaks after imputation (because of the change of the slope, you have more weight in the negative and in the positive range.)
