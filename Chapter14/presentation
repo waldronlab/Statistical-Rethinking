@@ -1,0 +1,117 @@
+Missing Data and Other Opportunities
+========================================================
+author: 
+date: 
+autosize: true
+font-import: http://fonts.googleapis.com/css?family=Risque
+font-family: 'Risque'
+
+Your next hour:
+========================================================
+
+- Measurementerror 
+- Missing data
+- Exercises
+
+Some basic definitions from non-bayesians:
+========================================================
+
+- data = observed variable
+- parameter = unobserved variable
+- likelihood = distribution for observed variables
+- prior = distribution for unobserved variables
+
+Waffle-Divorce example (chapter5)
+========================================================
+
+Displaying the measurement error of the outcome:
+
+![](displayingerror.png)
+
+Incorporation of measurementerror on the outcome
+========================================================
+
+- = linear regression model 
+            +
+    replacing the outcome with a vector of parameters
+    
+Sounds complicated...let's look again at our waffle-divorce example:
+
+   ![](Measurementerror.PNG)
+   
+map2stan version of the model:
+=======================================================
+
+![](map2stan_me.PNG)
+
+The output:
+========================================================
+
+![](output_me.PNG)
+
+Measurement error on the predictor variable:
+========================================================
+
+Nearly the same approach:
+
+![](me_predictor.PNG)
+
+map2stan version of the model:
+=======================================================
+
+also just a few changes:
+
+![](me_pre_map2stan.PNG)
+
+Output:
+=======================================================
+
+is also nearly the same:
+
+![](out_pre.PNG)
+
+MISSING DATA
+===========================================================
+
+Learning how to deal with missing values (MCAR) from the primate milk example (chapter 5):
+
+  - In chapter 5 we dropped 12 cases
+  - Now: we want do it better by producing estimates for this cases
+  - Disadvantage: Wide posteriors
+
+Approach:
+==========================================================
+
+- N=[0.55,N2,N3,N4,0.65,0.65,.,0.76,0.75]
+- likelihood or prior? - That is the question!
+- both: 
+
+  ![](imputing.PNG)
+
+R-code:
+============================================================
+
+![](imp_r.PNG)
+
+What happened with the outcome?
+===========================================================
+
+![](modelcomparison.PNG)
+
+Practice example 14M2 (in short form):
+==========================================================
+
+![](14M2.PNG)
+
+
+Improving the imputation model:
+========================================================
+
+![](improved_imputation.PNG)
+
+Input & Output:
+=======================================================
+
+![](Input_n_output_improved_imp.PNG)
+
+
